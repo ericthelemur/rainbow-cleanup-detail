@@ -1,0 +1,25 @@
+{
+    "name": "name",
+    "version": "1.0.0",
+    "description": "description",
+    "main": "index.js",
+    "scripts": {
+        "build": "clear && tsc",
+        "watch": "watch \"npm run build\" ./src --wait=0.5",
+        "start": "es-dev-server --app-index index.html --node-resolve --watch --open"
+    },
+    "author": "author",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^16.11.10",
+        "@types/three": "^0.134.0",
+        "es-dev-server": "^2.1.0",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.5.2",
+        "watch": "^1.0.2"
+    },
+    "repository": {},
+    "dependencies": {
+        "three": "^0.134.0"
+    }
+}

@@ -3,14 +3,46 @@
 <html>
 
 <head>
-    <title>Example</title>
+    <title>Test</title>
     <meta charset="UTF-8" />
+    <style>
+        body, div, canvas {
+            margin: 0;
+            padding: 0;
+            /* overflow: hidden; */
+        }
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #crosshair {
+            position: absolute;
+            width: 40px;
+            left: calc(50vw - 20px);
+            top: calc(50vh - 20px);
+            user-select: none;
+            pointer-events: none;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="gl-canvas" width="1024" height="1024"></canvas>
+    <div id="container">
+    </div>
+    <div id="ui">
+    </div>
+    <!-- <canvas id="gl-canvas" width="1024" height="1024"></canvas> -->
     <script type="module" charset="UTF-8" src="build/index.js"></script>
-
 </body>
 
 </html>

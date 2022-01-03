@@ -1,0 +1,75 @@
+
+.loader {
+  border-radius: 50%;
+  width: 10em;
+  height: 10em;
+  margin: 1em;
+  position: relative;
+  border-top: 1.1em solid white;
+  border-right: 1.1em solid transparent;
+  border-bottom: 1.1em solid white;
+  border-left: 1.1em solid transparent;
+  animation: rotateSteps 1.5s infinite;
+  animation-timing-function: ease;
+}
+
+@keyframes rotateSteps {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Progress Bar */
+progress {
+  margin: 1em;
+  margin-top: 5em;
+  border: 0.125em solid white;
+  background-color: transparent;
+  height: 1.25em;
+  width: 20em;
+  padding: 0.2em;
+  transition: 20ms ease;
+}
+
+progress::-moz-progress-bar { background: white; 
+  transition: 20ms ease;}
+progress::-webkit-progress-value { background: white; 
+  transition: 20ms ease;}
+progress { color: white; 
+  transition: 20ms ease;}
+
+
+/* Start Button */
+button {
+    padding: 10px 15px;
+    border: 0.125em solid white;
+    transition: 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: transparent;
+    font-size: 20px;
+  }
+  button::after {
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    content: "▶";
+    position: absolute;
+    left: -20%;
+    transition: 0.2s ease;
+  }
+  button span {
+    transition: 0.2s ease;
+  }
+  button:hover {
+      transform: scale(1.05);
+  }
+  button:hover span {
+    margin-left: 20px;
+  }
+  button:hover:after {
+    left: 20px;
+  }

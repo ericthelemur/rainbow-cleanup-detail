@@ -84,40 +84,12 @@ export class GLBScene extends BasicScene {
         this.worldOctree.fromGraphNode(this.mesh);
     
         this.mesh.traverse(child => {
-            if (child instanceof THREE.Mesh) {
+            if (child.type == "Mesh") {
                 child.castShadow = true;
                 child.receiveShadow = true;
-    
-                if (child.material.map) {
-                    child.material.map.anisotropy = 8;
-                }
             }
         });
-
-        // modelLoader.load(path, (gltf) => this.loaderFunc(s, gltf));
     }
-    
-    
-    // loaderFunc() {
-    //     const t = this;
-    //     return (mesh: THREE.Mesh) => {
-    //         this.mesh = mesh;
-    //         this.add(mesh);
-        
-    //         this.worldOctree.fromGraphNode(mesh);
-        
-    //         mesh.traverse(child => {
-    //             if (child instanceof THREE.Mesh) {
-    //                 child.castShadow = true;
-    //                 child.receiveShadow = true;
-        
-    //                 if (child.material.map) {
-    //                     child.material.map.anisotropy = 8;
-    //                 }
-    //             }
-    //         });
-    //     };
-    // };
 }
 
 

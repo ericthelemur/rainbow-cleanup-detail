@@ -14,13 +14,15 @@ export class Player extends Updatable {
     direction: THREE.Vector3;
     onFloor: boolean;
 
-    mouseTime: number;
     mass: number = 50;
     brush: THREE.Mesh | null;
 
     speed: number = 300;
     airSpeed: number = 50;
     jumpSpeed: number = 50;
+
+    pointerUp: (event: MouseEvent) => void;
+    mouseMove: (event: MouseEvent) => void;
 
     constructor() {
         super();
@@ -34,7 +36,7 @@ export class Player extends Updatable {
         this.direction = new THREE.Vector3();
 
         this.onFloor = false;
-        this.mouseTime = 0;
+        this.pointerUp = this.mouseMove = () => 1;
     }
 
     init(scene: GameScene) {
@@ -43,17 +45,20 @@ export class Player extends Updatable {
         scene.cameras.set("main", this.camera);
 
         const p = this;
-        window.addEventListener('pointerup', function(event) {
-            if (event.button == 0) p.splat();
-            else if (event.button == 2) scene.decals.clean();
-        });
         
-        document.body.addEventListener('mousemove', event => {
+        window.addEventListener('pointerup', this.pointerUp = ((event: MouseEvent) => {
+            if (event.button == 0) 
+                this.splat();
+            else if (event.button == 2) 
+                (this.scene! as GameScene).decals.clean();
+        }).bind(this));
+        
+        document.body.addEventListener('mousemove', this.mouseMove = ((event: MouseEvent) => {
             if (document.pointerLockElement === document.body) {
                 this.head.rotation.y -= event.movementX / 500;
                 this.head.rotation.x -= event.movementY / 500;
             }
-        });
+        }).bind(this));
 
         const brush = models.get("brush")!.data!;
 
@@ -65,10 +70,11 @@ export class Player extends Updatable {
 
         this.brush.rotateX(Math.PI/2);
         this.brush.rotateY(Math.PI / 6);
-        
-        // const c = brush.clone();
-        // scene.add(c);
-        // c.translateY(-1);
+    }
+
+    destroy() {
+        window.removeEventListener("pointerup", this.pointerUp);
+        document.body.removeEventListener("mousemove", this.mouseMove);
     }
 
     splat () {

@@ -5,41 +5,40 @@
 <head>
     <title>Test</title>
     <meta charset="UTF-8" />
-    <style>
-        body, div, canvas {
-            margin: 0;
-            padding: 0;
-            /* overflow: hidden; */
-        }
-        canvas {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-        }
 
-        #ui {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-        }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 
-        #crosshair {
-            position: absolute;
-            width: 40px;
-            left: calc(50vw - 20px);
-            top: calc(50vh - 20px);
-            user-select: none;
-            pointer-events: none;
-        }
-    </style>
+    <link href="./resources/css/index.css" rel="stylesheet">
+    <link href="./resources/css/loader.css" rel="stylesheet">
+    <link href="./resources/css/gameui.css" rel="stylesheet">
 </head>
 
 <body>
-    <div id="container">
+    <div id="container"></div>
+    <div id="ui" class="ui"></div>
+    
+    <div id="gameui" class="ui" hidden>
+        <img id="crosshair" src="resources/textures/ui/crosshair.png">
+        <p id="cleaned"><b id="cleanedPercent">0</b>% Clean</p>
+        <p id="water"><b id="waterLevel">0</b>/<span id="waterMax">5</span></p>
     </div>
-    <div id="ui">
+
+    <div id="loadui" class="ui" hidden>
+        <div class="centred">
+            <div class="loader"></div>
+            <progress id="loadprogress" max=4 value=1></progress>
+        </div>
+    </div>
+
+    <div id="menuui" class="ui" hidden>
+        <div class="centred">
+            <h1>Rainbow Clean-up Detail</h1>
+            <p>Graphics Coursework by Owen Connors</p>
+            <p>RMB to clean</p>
+            <button id=startbtn><span>Start</span></button>
+        </div>
     </div>
     <!-- <canvas id="gl-canvas" width="1024" height="1024"></canvas> -->
     <script type="module" charset="UTF-8" src="build/index.js"></script>

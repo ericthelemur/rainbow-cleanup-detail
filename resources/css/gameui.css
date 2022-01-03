@@ -1,0 +1,27 @@
+
+#crosshair {
+    position: absolute;
+    width: 40px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    user-select: none;
+    pointer-events: none;
+}
+
+#cleaned {
+    font-size: 1.5em;
+    position: absolute;
+    bottom: 1em;
+    left: 1em;
+    margin: 1em;
+}
+
+
+#water {
+    font-size: 1.5em;
+    position: absolute;
+    bottom: 1em;
+    right: 1em;
+    margin: 1em;
+}

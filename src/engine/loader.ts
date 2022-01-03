@@ -16,15 +16,12 @@ class MyLoader<T> extends Map<string, LoadT<T>> {
     load(name: string, url: string, then?: (data: T) => any) {
         if (this.get(name)?.url == url) return Promise.resolve();
         return this.createPromise(name, url, then);
-        // return this.loadMultiple({name: url});
-        // Promise.resolve(this.createPromise(name, url));
-        // return this.get(name);
     }
 
     loadMultiple(urls: { [key: string]: string }, then?: () => any): Promise<any> {
         const promises = [];
         for (var key in urls) {
-            promises.push(this.load(key, urls[key]));
+            promises.push(this.load(key, urls[key], undefined));
         }
         return Promise.all(promises).then(then);
     }
@@ -95,30 +92,6 @@ function loadTexturedModel(name: string, model_url: string, col_url: string, nor
     urls[nn] = norm_url;
     if (rough_url) urls[nr] = rough_url;
     if (metal_url) urls[nm] = metal_url;
-
-    // return textures.loadMultiple(urls, () => {
-    //     const diffuse = textures.get(nc)!.data!;
-    //     diffuse.encoding = THREE.sRGBEncoding;
-    //     const norm = textures.get(nn)!.data!;
-    //     const rough = textures.get(nr)!.data!;
-    //     const metal = textures.get(nm)!.data!;
-
-    //     const material = new THREE.MeshStandardMaterial({map: diffuse, 
-    //                             normalMap: norm,
-    //                             roughnessMap: rough,
-    //                             metalnessMap: metal,
-    //                         });
-
-    //     models.load(name, model_url, function (model) {
-    //         model.traverse((obj) => {
-    //             if (obj.type == "Mesh") {
-    //                 obj.receiveShadow = true;
-    //                 (obj as THREE.Mesh).material = material;
-    //             }
-    //         });
-    //         if (onLoad) onLoad(model);
-    //     });
-    // });
 
     return Promise.all([textures.loadMultiple(urls), models.load(name, model_url)])
             .then(() => {

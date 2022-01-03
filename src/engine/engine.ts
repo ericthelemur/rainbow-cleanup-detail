@@ -63,10 +63,23 @@ class Engine {
     }
 
     public set scene(value: BasicScene | undefined) {
+        this._scene?.destroy();
+        engine.ui = "";
+        
+        const uis = document.getElementsByClassName("ui")!;
+        for (var i=0; i < uis.length; i++) (uis[i] as HTMLElement).hidden = true;
+        document.getElementById("ui")!.hidden = false;
+
+        console.log("TRANSITION TO", value);
         this._scene = value;
         this.camera = value?.cameras?.get("main")!;
         this.onWindowResize();  // Update scene cameras to match any change in window size
+        
         this._scene?.init();
+    }
+
+    enableUI(name: string) {
+        document.getElementById(name)!.hidden = false;
     }
 
     public set ui(value: string) {

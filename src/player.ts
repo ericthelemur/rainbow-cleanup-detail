@@ -1,6 +1,8 @@
 
 import * as THREE from 'three';
 import { Capsule } from 'three-stdlib/math/Capsule';
+import { clamp } from 'three/src/math/MathUtils';
+import { intersectionT, MessDecals } from './decals';
 import { engine, input, textures, models, Updatable, GLBScene } from './engine/engine';
 import { loadTexturedModel } from './engine/loader';
 import { GameScene } from './gamescene';
@@ -21,8 +23,16 @@ export class Player extends Updatable {
     airSpeed: number = 50;
     jumpSpeed: number = 50;
 
+    waterCapacity: number = 5;
+    _waterLevel: number = 0;
+    cleanTarget: number = 100;
+    _cleanCount: number = 0;
+
     pointerUp: (event: MouseEvent) => void;
     mouseMove: (event: MouseEvent) => void;
+
+    cleanedElement: HTMLElement;
+    waterElement: HTMLElement;
 
     constructor() {
         super();
@@ -37,6 +47,12 @@ export class Player extends Updatable {
 
         this.onFloor = false;
         this.pointerUp = this.mouseMove = () => 1;
+
+        this.waterElement = document.getElementById("waterLevel")!;
+        this.waterLevel = this.waterCapacity;
+        document.getElementById("waterMax")!.innerText = this.waterCapacity.toString();
+
+        this.cleanedElement = document.getElementById("cleanedPercent")!;
     }
 
     init(scene: GameScene) {
@@ -47,16 +63,15 @@ export class Player extends Updatable {
         const p = this;
         
         window.addEventListener('pointerup', this.pointerUp = ((event: MouseEvent) => {
-            if (event.button == 0) 
-                this.splat();
-            else if (event.button == 2) 
-                (this.scene! as GameScene).decals.clean();
+            if (event.button == 2) this.splat();
+            else if (event.button == 0) this.clean();
         }).bind(this));
         
         document.body.addEventListener('mousemove', this.mouseMove = ((event: MouseEvent) => {
             if (document.pointerLockElement === document.body) {
                 this.head.rotation.y -= event.movementX / 500;
                 this.head.rotation.x -= event.movementY / 500;
+                this.head.rotation.x = clamp(this.head.rotation.x, -Math.PI/2, Math.PI/2);            
             }
         }).bind(this));
 
@@ -70,6 +85,9 @@ export class Player extends Updatable {
 
         this.brush.rotateX(Math.PI/2);
         this.brush.rotateY(Math.PI / 6);
+
+        this.cleanTarget = (this.scene as GameScene).decalCount;
+        this.cleanCount = 0;
     }
 
     destroy() {
@@ -77,11 +95,35 @@ export class Player extends Updatable {
         document.body.removeEventListener("mousemove", this.mouseMove);
     }
 
-    splat () {
-        const decals = (this.scene as GameScene).decals;
-        const intersection = decals.checkIntersection(window.innerWidth/2, window.innerHeight/2, this.scene);
-        if (!intersection.intersects) return;
-        decals.addDecal(intersection);
+    splat() {
+        const gs = this.scene as GameScene
+        const decals = gs.decals;
+        const intersects: THREE.Intersection[] = gs.checkIntersection(window.innerWidth/2, window.innerHeight/2, this.scene!.children);
+
+        // Construct intersection result
+        if (intersects.length > 0) {
+            const intersection = MessDecals.convertIntersectType(intersects[0]);
+            decals.addDecal(intersection);
+        }
+    }
+
+    clean() {
+        if (this.waterLevel > 0) {
+            if ((this.scene! as GameScene).decals.clean()) {
+                this.waterLevel = this._waterLevel - 1;
+                this.cleanCount = this._cleanCount + 1;
+            }
+        }
+        this.refillCheck();
+    }
+
+    refillCheck() {
+        if (this.waterLevel >= this.waterCapacity) return;
+        const gs = this.scene as GameScene
+        const intersects: THREE.Intersection[] = gs.checkIntersection(window.innerWidth/2, window.innerHeight/2, [gs.bucketCollider]);
+        if (intersects.length > 0 && intersects[0].distance < 1.0) {
+            this.waterLevel = this.waterCapacity;
+        }
     }
 
     updateChildren() {
@@ -171,5 +213,25 @@ export class Player extends Updatable {
 
     getSideVector () {
         return this.getForwardVector().cross(this.camera.up);
+    }
+
+    set waterLevel(level: number) {
+        this._waterLevel = level;
+        this.waterElement.innerText = level.toString();
+        const text = level > 0? "🌢".repeat(level) : "Refill at Bucket"
+        document.getElementById("waterMarkers")!.innerText = text;// + "○".repeat(this.waterCapacity - level);
+
+    }
+    get waterLevel() {
+        return this._waterLevel;
+    }
+
+    set cleanCount(count: number) {
+        this._cleanCount = count;
+        this.cleanedElement.innerText = Math.trunc(100.0 * count / this.cleanTarget).toString();
+    }
+
+    get cleanCount() {
+        return this._cleanCount;
     }
 }

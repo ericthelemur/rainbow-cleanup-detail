@@ -25,3 +25,11 @@
     right: 1em;
     margin: 1em;
 }
+
+#waterMarkers {
+    display: inline-block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, 30px);
+}

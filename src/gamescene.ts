@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Scene } from 'three';
 
 import { MeshSurfaceSampler } from "three-stdlib/math/MeshSurfaceSampler";
-import { MessDecals } from './decals';
+import { intersectionT, MessDecals } from './decals';
 import { engine, models, textures } from './engine/engine';
 import { loadTexturedModel } from './engine/loader';
 import { ParticleSystem } from './engine/particles';
@@ -16,7 +16,12 @@ class GameScene extends GLBScene {
     player: Player;
     decals: MessDecals;
     bucket: THREE.Mesh | undefined = undefined;
+    bucketCollider: THREE.Mesh;
     particles: ParticleSystem;
+
+    raycaster: THREE.Raycaster = new THREE.Raycaster();
+
+    decalCount = 100;
 
     constructor(name: string) {
         super(name);
@@ -27,12 +32,15 @@ class GameScene extends GLBScene {
         this.addUpdate("player", this.player);
         
         this.decals = new MessDecals(this);
-        this.bucket = models.get("bucket")!.data!;; 
+        this.bucket = models.getData("bucket");
         this.bucket.castShadow = true;
 
-        this.add(this.bucket!);
-        this.bucket!.translateY(-1.75);
-        this.bucket!.translateX(0.5);
+        this.add(this.bucket);
+        this.bucket.translateY(-1.75);
+        this.bucket.translateX(0.5);
+
+        this.bucketCollider = new THREE.Mesh(new THREE.SphereGeometry(1));
+        this.bucket!.add(this.bucketCollider);
 
         // Randomly place decals
         const sampler = new MeshSurfaceSampler(this.mesh!).build();
@@ -41,7 +49,7 @@ class GameScene extends GLBScene {
 
         const normalTransform = new THREE.Matrix3().getNormalMatrix(this.mesh!.matrixWorld);
 
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < this.decalCount; i++) {
             sampler.sample(pos, norm);
             this.mesh?.localToWorld(pos);
             norm.applyMatrix3(normalTransform).normalize();
@@ -63,6 +71,23 @@ class GameScene extends GLBScene {
 
     destroy() {
         document.removeEventListener("mousedown", this.mouseDown);
+    }
+
+
+    // Checks for intersection from the window coords given
+    checkIntersection (x: number, y: number, target: THREE.Object3D[] | null): THREE.Intersection[] {
+        // Rescale to window coords
+        const rayCoords = new THREE.Vector2();
+        rayCoords.x = (x! / window.innerWidth) * 2 - 1;
+        rayCoords.y = -(y! / window.innerHeight) * 2 + 1;
+
+        // Raycast
+        this.raycaster.setFromCamera(rayCoords, engine.camera!);
+        const intersects: THREE.Intersection[] = [];
+        if (target === null) target = this.children;
+        this.raycaster.intersectObjects(target, true, intersects);
+
+        return intersects;
     }
 
     

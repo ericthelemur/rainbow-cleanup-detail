@@ -3,12 +3,10 @@ import { DecalGeometry } from 'three-stdlib/geometries/DecalGeometry';
 import { GameScene } from './gamescene';
 import { BasicScene, engine, textures, Updatable } from './engine/engine';
 
-export { MessDecals }
+export { MessDecals, intersectionT }
 
 const collMat = new THREE.MeshBasicMaterial();
 
-
-let raycaster: THREE.Raycaster = new THREE.Raycaster();
 let line: THREE.Line;
 
 type intersectionT = { intersects: boolean; point: THREE.Vector3; normal: THREE.Vector3 };
@@ -51,34 +49,7 @@ class MessDecals {
         })]
     }
 
-    // Checks for intersection from the window coords given
-    checkIntersection (x: number, y: number, target: THREE.Object3D | null): intersectionT {
-        // Rescale to window coords
-        const rayCoords = new THREE.Vector2();
-        rayCoords.x = (x! / window.innerWidth) * 2 - 1;
-        rayCoords.y = -(y! / window.innerHeight) * 2 + 1;
-
-        // Raycast
-        raycaster.setFromCamera(rayCoords, engine.camera!);
-        const intersects: THREE.Intersection[] = [];
-        if (target === null) target = this.scene;
-        raycaster.intersectObjects(target!.children, true, intersects);
-
-        // Construct intersection result
-        const intersection: intersectionT = { intersects: false, point: new THREE.Vector3(), normal: new THREE.Vector3() };
-        if (intersects.length > 0) {
-            // Copy raycast nearest point into intersection
-            const int = intersects[0];
-            const p = int.point;
-            intersection.point.copy(p);
-
-            intersection.normal.copy(int.face!.normal);
-            intersection.normal.transformDirection(int.object.matrixWorld);
-
-            intersection.intersects = true;
-        }
-        return intersection;
-    }
+    
 
     // Adds decal at the point and normal given
     addDecal(intersection: intersectionT) {
@@ -122,14 +93,14 @@ class MessDecals {
         mouse.x = (window.innerWidth/2 / window.innerWidth) * 2 - 1;
         mouse.y = -(window.innerHeight/2 / window.innerHeight) * 2 + 1;
 
-        raycaster.setFromCamera(mouse, engine.camera!);
+        this.scene.raycaster.setFromCamera(mouse, engine.camera!);
         const intersects: THREE.Intersection[] = [];
-        raycaster.intersectObjects(this.colliders.children, true, intersects);
+        this.scene.raycaster.intersectObjects(this.colliders.children, true, intersects);
 
         // console.log(intersects);
         if (intersects.length == 0 || intersects[0].distance > 1) {
-            raycaster.intersectObjects(this.decals.children, true, intersects);
-            if (intersects.length == 0 || intersects[0].distance > 1) return;
+            this.scene.raycaster.intersectObjects(this.decals.children, true, intersects);
+            if (intersects.length == 0 || intersects[0].distance > 1) return false;
         }
 
         const id = intersects[0].object.id;
@@ -141,6 +112,15 @@ class MessDecals {
         this.scene.remove(dirt.decal);
         this.scene.remove(dirt.collider);
         this.dirts.delete(id);
+        return true;
+    }
+
+    static convertIntersectType(int: THREE.Intersection) {
+        const n = int.face!.normal.clone();
+        const normalTransform = new THREE.Matrix3().getNormalMatrix(int.object.matrixWorld);
+        n.applyMatrix3(normalTransform).normalize();
+
+        return { intersects: true, point: int.point.clone(), normal: n };
     }
 
     removeDecals () {

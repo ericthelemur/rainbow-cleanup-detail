@@ -61,6 +61,7 @@ export class ParticleSystem {
                 )
             });
         }
+        this.updateGeometry();
     }
 
     updateGeometry() {
@@ -71,5 +72,6 @@ export class ParticleSystem {
 
         this.geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
         this.geometry.attributes.position.needsUpdate = true;
+        console.log("POS", positions)
     }
 }

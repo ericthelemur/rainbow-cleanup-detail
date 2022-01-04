@@ -13,6 +13,7 @@
     <link href="./resources/css/index.css" rel="stylesheet">
     <link href="./resources/css/loader.css" rel="stylesheet">
     <link href="./resources/css/gameui.css" rel="stylesheet">
+    <link href="./resources/css/menuui.css" rel="stylesheet">
 </head>
 
 <body>
@@ -21,6 +22,7 @@
     
     <div id="gameui" class="ui" hidden>
         <img id="crosshair" src="resources/textures/ui/crosshair.png">
+        <img id="crosshairWarn" src="resources/textures/ui/crosshairRed.png">
         <div id="waterMarkers">🌢🌢🌢</div>
         <p id="cleaned"><b id="cleanedPercent">0</b>% Clean</p>
         <p id="water">🌢 <b id="waterLevel">0</b>/<span id="waterMax">5</span></p>
@@ -37,8 +39,22 @@
         <div class="centred">
             <h1>Rainbow Clean-up Detail</h1>
             <p>Graphics Coursework by Owen Connors</p>
-            <p>RMB to clean</p>
+            <p>LMB to clean<br>C to switch camera view</p>
+            
             <button id=startbtn><span>Start</span></button>
+
+            <div class="toggle">
+                <span class="option">Level 1</span><span class="option">Level 2</span>
+                <input id="levelSwitch" type="checkbox"/>
+                <label for="levelSwitch">
+                  <div class="card slide">
+                      <div class="outline"></div>
+                    </div>
+                </label>
+            </div>
+
+
+
         </div>
     </div>
     <!-- <canvas id="gl-canvas" width="1024" height="1024"></canvas> -->

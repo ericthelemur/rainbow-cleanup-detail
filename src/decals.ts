@@ -2,23 +2,25 @@ import * as THREE from 'three';
 import { DecalGeometry } from 'three-stdlib/geometries/DecalGeometry';
 import { GameScene } from './gamescene';
 import { BasicScene, engine, textures, Updatable } from './engine/engine';
+import { MeshPhongMaterial } from 'three';
 
 export { MessDecals, intersectionT }
 
 const collMat = new THREE.MeshBasicMaterial();
 
-let line: THREE.Line;
+// let line: THREE.Line;
 
 type intersectionT = { intersects: boolean; point: THREE.Vector3; normal: THREE.Vector3 };
 type dirtT = { decal: THREE.Mesh, collider: THREE.Mesh }
 
 class MessDecals {
-    // decals: THREE.Mesh[] = [];
     scene: GameScene;
 
+    // Stores references to colliders and decals
     dirts: Map<number, dirtT> = new Map();
     colliders = new THREE.Group();
     decals = new THREE.Group();
+
     decalMaterials: THREE.MeshPhongMaterial[];
 
     constructor(scene: GameScene) {
@@ -26,6 +28,7 @@ class MessDecals {
         scene.add(this.colliders);
         scene.add(this.decals);
 
+        // Creates materials
         this.decalMaterials = [new THREE.MeshPhongMaterial({
             specular: 0x444444, shininess: 30,
             map: textures.getData("decal_diff1"), 
@@ -66,17 +69,18 @@ class MessDecals {
         const scale = 1 + Math.random() * (2 - 1);
         const size = new THREE.Vector3(scale, scale, 0.05);
 
-        const material = (this.decalMaterials[Math.trunc(Math.random() * this.decalMaterials.length)]).clone();
+        const i = Math.trunc(Math.random() * this.decalMaterials.length);
+        const material = (this.decalMaterials[i]).clone();
         material.color.setHex(Math.random() * 0xffffff);
 
-        const m = new THREE.Mesh(
-            new DecalGeometry(this.scene.mesh!, position, orientation, size),
-            material
-        );
+        // Create mesh
+        const geom = new DecalGeometry(this.scene.mesh!, position, orientation, size);
+        const m = new THREE.Mesh(geom, material);
 
         this.decals.add(m);
-        this.scene.add(m);
+        // this.scene.add(m);
 
+        // Create collider
         const sph = new THREE.Mesh(new THREE.SphereGeometry(0.75), collMat);
         sph.visible = false;
         sph.position.set(position.x, position.y, position.z);
@@ -84,37 +88,33 @@ class MessDecals {
         this.dirts.set(sph.id, {decal: m, collider: sph});
         this.dirts.set(m.id, {decal: m, collider: sph});
         this.colliders.add(sph);
-
-        // console.log(m, sph);
     }
 
     clean() {
-        const mouse = new THREE.Vector2();
-        mouse.x = (window.innerWidth/2 / window.innerWidth) * 2 - 1;
-        mouse.y = -(window.innerHeight/2 / window.innerHeight) * 2 + 1;
-
-        this.scene.raycaster.setFromCamera(mouse, engine.camera!);
+        // Raycast onto colliders
+        this.scene.raycaster.setFromCamera(new THREE.Vector2(), engine.camera!);
         const intersects: THREE.Intersection[] = [];
         this.scene.raycaster.intersectObjects(this.colliders.children, true, intersects);
 
-        // console.log(intersects);
+        // If no intersection, attempt raycast onto decals directly
         if (intersects.length == 0 || intersects[0].distance > 1) {
             this.scene.raycaster.intersectObjects(this.decals.children, true, intersects);
-            if (intersects.length == 0 || intersects[0].distance > 1) return false;
+            if (intersects.length == 0 || intersects[0].distance > 1) return null;
         }
 
+        // Fetch decal info
         const id = intersects[0].object.id;
+        const inter = MessDecals.convertIntersectType(intersects[0]);
         const dirt = this.dirts.get(id)!;
-        // console.log(dirt);
 
+        // Remove from scene
         this.colliders.remove(dirt.collider);
         this.decals.remove(dirt.decal);
-        this.scene.remove(dirt.decal);
-        this.scene.remove(dirt.collider);
         this.dirts.delete(id);
-        return true;
+        return { intersection: inter, decal: dirt.decal, collider: dirt.collider };
     }
 
+    // Converts from Three intersection, fetching normal
     static convertIntersectType(int: THREE.Intersection) {
         const n = int.face!.normal.clone();
         const normalTransform = new THREE.Matrix3().getNormalMatrix(int.object.matrixWorld);
@@ -123,6 +123,7 @@ class MessDecals {
         return { intersects: true, point: int.point.clone(), normal: n };
     }
 
+    // Cleanup
     removeDecals () {
         const s = this.scene;
         this.decals.traverse(function (d) {
@@ -131,7 +132,7 @@ class MessDecals {
         this.decals.clear();
     }
 }
-
+        // Debug line code
         // const p = intersection.point.clone();
         // const n = intersection.normal.clone();
         // n.add(p);

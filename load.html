@@ -6,25 +6,36 @@
     <title>Test</title>
     <meta charset="UTF-8" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-
     <link href="./resources/css/index.css" rel="stylesheet">
+    <link href="./resources/css/loader.css" rel="stylesheet">
+    <link href="./resources/css/menuui.css" rel="stylesheet">
     <link href="./resources/css/loader.css" rel="stylesheet">
 </head>
 
 <body>
-    <div id="container" style="width:100vw; height:100vh"></div>
-    <div id="ui" class="ui"></div>
+    <!-- <div id="container" style="width:100vw; height:100vh"></div>
+    <div id="ui" class="ui"></div> -->
     
 
-    <div id="loadui" class="ui">
+    <!-- <div id="loadui" class="ui">
         <div class="centred">
             <div class="loader"></div>
             <progress id="progress" max=4 value=1></progress>
         </div>
+    </div> -->
+
+    <div class="toggle slide">
+        <span class="option">Level 1</span>
+        <span class="option">Level 2</span>
+        
+        <input id="c" type="checkbox"/>
+        <label for="c">
+          <div class="card slide">
+              <div class="outline"></div>
+            </div>
+        </label>
     </div>
+        
 
 </body>
 

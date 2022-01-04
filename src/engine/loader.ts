@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { GLTF, GLTFLoader } from 'three-stdlib/loaders/GLTFLoader';
-import { models, textures } from './engine';
-export { Textures, Models, loadTexturedModel }
+import { engine, models, textures } from './engine';
+export { Textures, Models, loadTexturedModel, Audio }
 
 type LoadT<T> = {url: string; data: T | null};
 
+// Class to represent generic resource loader, creates promises for multiple loads
 class MyLoader<T> extends Map<string, LoadT<T>> {
     loader: THREE.Loader;
 
@@ -13,11 +14,13 @@ class MyLoader<T> extends Map<string, LoadT<T>> {
         this.loader = loader;
     }
     
+    // Load a single resource
     load(name: string, url: string, then?: (data: T) => any) {
         if (this.get(name)?.url == url) return Promise.resolve();
         return this.createPromise(name, url, then);
     }
 
+    // Load multiple resources at a time
     loadMultiple(urls: { [key: string]: string }, then?: () => any): Promise<any> {
         const promises = [];
         for (var key in urls) {
@@ -26,18 +29,24 @@ class MyLoader<T> extends Map<string, LoadT<T>> {
         return Promise.all(promises).then(then);
     }
     
+    // Base funciton creating the load calls
     createPromise(name: string, url: string, then?: (data: T) => any) {
         if (this.get(name)) {
-            if (then) return new Promise<T>( () => { then(this.get(name)!.data!) });
+            if (then) return new Promise<T>( () => { then(this.getData(name)) });
             else return Promise.resolve();
         }
         if (!url) return Promise.resolve();
 
-        return this.loader.loadAsync(url, console.log)
+        return this._combine(name, url, then);
+    }
+
+    _combine(name: string, url: string, then?: (data: T) => any) {
+        return this.loader.loadAsync(url)
             .then(this.storeResult(name, url))
             .then(then);
     }
 
+    // Stores result in dict
     storeResult(name: string, url: string) {
         return (result: any) => {
             const entry = {url: url, data: result};
@@ -45,7 +54,8 @@ class MyLoader<T> extends Map<string, LoadT<T>> {
             return result;
         }
     }
-
+    
+    // Fetch from dict
     getData(key: string): T {
         return super.get(key)!.data!;
     }
@@ -56,25 +66,30 @@ class MyLoader<T> extends Map<string, LoadT<T>> {
     
 }
 
+// Resource paths
 const RESOURCE_BASE = "../resources/"
 const MODEL_PATH = RESOURCE_BASE + "models/";
 const TEXTURE_PATH = RESOURCE_BASE + "textures/";
+const AUDIO_PATH = RESOURCE_BASE + "audio/";
 
 class Models extends MyLoader<THREE.Mesh> {
     constructor() { super(new GLTFLoader().setPath(MODEL_PATH)) }
 
+    // Model loader extracts child mesh from GLTF object
     storeResult(name: string, url: string) {
         const f = super.storeResult(name, url);
         return ((result: GLTF) => {
+            super.storeResult(name + "_gltf", url)(result);
             const m = result.scene.children[0] as THREE.Mesh;
             return f(m);
         });
     }
 }
 
-class Textures extends MyLoader<THREE.Texture>{
+class Textures extends MyLoader<THREE.Texture> {
     constructor() { super(new THREE.TextureLoader().setPath(TEXTURE_PATH)) }
 
+    // Texture loader unflips texture
     storeResult(name: string, url: string) {
         const f = super.storeResult(name, url);
         return (result: any) => {
@@ -84,8 +99,23 @@ class Textures extends MyLoader<THREE.Texture>{
     }
 };
 
+class Audio extends MyLoader<THREE.Audio> {
+    constructor() { super(new THREE.AudioLoader().setPath(AUDIO_PATH)) }
+
+    storeResult(name: string, url: string): (result: any) => any {
+        const f = super.storeResult(name, url);
+        return (result: any) => {
+            const audio = new THREE.Audio(engine.audio);
+            audio.setBuffer(result);
+            return f(audio);
+        }
+    }
+}
+
+// Load model with set colour, normal, roughness and metallic properties
 function loadTexturedModel(name: string, model_url: string, col_url: string, norm_url: string, rough_url?: string, metal_url?: string, onLoad?: (model: THREE.Mesh) => any) {
     if (models.get(name)) return;
+    // Create load url dict
     const [nc, nn, nr, nm] = [name + "_col", name + "_norm", name + "_rough", name + "_metal"]
     const urls: {[name: string]: string} = {};
     urls[nc] = col_url;
@@ -93,21 +123,23 @@ function loadTexturedModel(name: string, model_url: string, col_url: string, nor
     if (rough_url) urls[nr] = rough_url;
     if (metal_url) urls[nm] = metal_url;
 
+    // Create loads
     return Promise.all([textures.loadMultiple(urls), models.load(name, model_url)])
             .then(() => {
-                const diffuse = textures.get(nc)!.data!;
+                // On complete, load textures and assign to model
+                const diffuse = textures.getData(nc);
                 diffuse.encoding = THREE.sRGBEncoding;
-                const norm = textures.get(nn)!.data!;
-                const rough = textures.get(nr)!.data!;
-                const metal = textures.get(nm)!.data!;
-
+                const norm = textures.getData(nn);
+                const rough = textures.getData(nr);
+                const metal = textures.getData(nm);
+                
                 const material = new THREE.MeshStandardMaterial({map: diffuse, 
                                         normalMap: norm,
                                         roughnessMap: rough,
                                         metalnessMap: metal,
                                     });
-                
-                const model = models.get(name)!.data!;
+                // Assigns material to all mesh children
+                const model = models.getData(name);
                 model.traverse((obj) => {
                     if (obj.type == "Mesh") {
                         obj.receiveShadow = true;

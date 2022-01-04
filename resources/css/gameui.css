@@ -1,12 +1,31 @@
 
-#crosshair {
+#gameui {
+    user-select: none;
+    pointer-events: none;
+}
+
+#crosshair, #crosshairWarn {
     position: absolute;
     width: 40px;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    user-select: none;
-    pointer-events: none;
+}
+
+#crosshairWarn {
+    opacity: 0;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0 }
+    50% { opacity: 1 }
+    100% { opacity: 0 }
+}
+
+@keyframes flashRed {
+    0% { color: white; font-size: 1em; }
+    50% { color: white; font-size: 1.1em; }
+    100% { color: white; font-size: 1em; }
 }
 
 #cleaned {
@@ -32,4 +51,5 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, 30px);
+    text-align: center;
 }

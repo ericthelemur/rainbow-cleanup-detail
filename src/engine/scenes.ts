@@ -2,23 +2,35 @@ import * as THREE from 'three';
 import { Octree } from 'three-stdlib/math/Octree';
 import { engine, models } from './engine';
 
+// Class representing components of the scene that need updates
 export class Updatable {
     scene: BasicScene | null = null;
-    init(scene: BasicScene) { this.scene = scene; }
-    update(deltaTime: number) {}
-    destroy() {}
+    init(scene: BasicScene) { this.scene = scene; } // Called once scene created
+    initAfter() {}                                  // Called after camera and other inits
+    start() {}                                      // Called once scene has finished transition
+    update(deltaTime: number) {}                    // Called per frame
+    destroy() {}                                    // Called when transitioning out
 }
 
 export class BasicScene extends THREE.Scene {
     updates: Map<string, Updatable> = new Map();
     cameras: Map<string, THREE.PerspectiveCamera> = new Map();
-    initialized: boolean = false;
+    initialized: number = 0;
     ui: string = "";
 
     init() {
+        this.initialized = 1;
         this.updates.forEach(up => up.init(this));
-        this.initialized = true;
         engine.ui = this.ui;
+    }
+
+    initAfter() {
+        this.initialized = 2;
+        this.updates.forEach(up => up.initAfter());
+    }
+
+    start() {
+        this.updates.forEach(up => up.start());
     }
 
     update(deltaTime: number) {
@@ -29,9 +41,11 @@ export class BasicScene extends THREE.Scene {
         this.updates.forEach(up => up.destroy());
     }
 
+    // Add Updatable, calling inits if already called for scene
     addUpdate(name: string, up: Updatable) {
         this.updates.set(name, up);
-        up.init(this);
+        if (this.initialized >= 1) up.init(this);
+        if (this.initialized >= 2) up.initAfter();
     }
 
     getUpdate(name: string): Updatable | undefined {
@@ -47,6 +61,7 @@ export class GLBScene extends BasicScene {
         super();
         this.background = new THREE.Color(0x88ccff);
 
+        // Add lights
         const ambientlight = new THREE.AmbientLight(0x6688cc);
         this.add(ambientlight);
 
@@ -73,12 +88,10 @@ export class GLBScene extends BasicScene {
         directionalLight.shadow.bias = -0.00006;
         this.add(directionalLight);
         
+        // Assign mesh and calculate collision octree
         this.worldOctree = new Octree();
         
-        const s = this;
-        // models.load("scene", path).then(this.loaderFunc());
-
-        this.mesh = models.get(name)!.data!;
+        this.mesh = models.getData(name);
         this.add(this.mesh);
     
         this.worldOctree.fromGraphNode(this.mesh);

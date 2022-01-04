@@ -2,20 +2,23 @@ import { engine } from "./engine/engine";
 import { BasicScene } from "./engine/scenes";
 
 export class MenuScene extends BasicScene {
+    // Function to create scene to transition to after start
     nextScene: () => BasicScene;
+    levelToggle = false;
 
     constructor(nextScene: () => BasicScene) {
         super();
         this.nextScene = nextScene;
 
-        document.getElementById("startbtn")?.addEventListener("click", this.start.bind(this));
+        // Start button listener
+        document.getElementById("startbtn")?.addEventListener("click", this.finish.bind(this));
     }
 
     init() {
         engine.enableUI("menuui");
     }
 
-    start() {
+    finish() {
         engine.scene = this.nextScene();
     }
 }

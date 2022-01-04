@@ -9,7 +9,7 @@ body, div, canvas {
     overflow: hidden;
 }
 
-#container {
+body {
     background-color: black;
 }
 

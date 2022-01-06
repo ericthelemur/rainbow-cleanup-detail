@@ -1,6 +1,15 @@
-* {
-    font-family: 'Montserrat', sans-serif;
-    color: white;
+@font-face {
+    font-family: "Montserrat";
+    src: url("../fonts/Montserrat.ttf");
+}
+
+@font-face {
+    font-family: "PromptFont";
+    src: url("../fonts/PromptFont.ttf");
+}
+
+kdb {
+    font-family: "PromptFont", monospace, monospace;
 }
 
 body, div, canvas {
@@ -9,8 +18,16 @@ body, div, canvas {
     overflow: hidden;
 }
 
-body {
+body, button {
     background-color: black;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.4em;
+    color: white;
+}
+
+h1 {
+    font-size: 2em;
+    font-weight: bold;
 }
 
 canvas {

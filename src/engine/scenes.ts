@@ -19,12 +19,14 @@ export class BasicScene extends THREE.Scene {
     ui: string = "";
 
     init() {
+        if (this.initialized >= 1) return; 
         this.initialized = 1;
         this.updates.forEach(up => up.init(this));
         engine.ui = this.ui;
     }
 
     initAfter() {
+        if (this.initialized >= 2) return; 
         this.initialized = 2;
         this.updates.forEach(up => up.initAfter());
     }
@@ -38,6 +40,7 @@ export class BasicScene extends THREE.Scene {
     }
 
     destroy() {
+        
         this.updates.forEach(up => up.destroy());
     }
 
@@ -56,9 +59,11 @@ export class BasicScene extends THREE.Scene {
 export class GLBScene extends BasicScene {
     worldOctree: Octree;
     mesh: THREE.Mesh | null = null;
+    name: string;
 
     constructor(name: string) {
         super();
+        this.name = name;
         this.background = new THREE.Color(0x88ccff);
 
         // Add lights

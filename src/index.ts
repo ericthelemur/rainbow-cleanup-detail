@@ -27,13 +27,11 @@ const menu: MenuScene = engine.scene = new MenuScene(() => new LoadingScene({
     const bgmusic = audio.getData("musicloop");
     bgmusic.setVolume(0.15);
     engine.playSFX(bgmusic, true);
-
-
-
-    const levelSwitch = document.getElementById("levelSwitch")! as HTMLInputElement;
-    return new GameScene(levelSwitch.checked ? "scene2": "scene1");
+    
+    const toggle = document.getElementById("levelSwitch")! as HTMLInputElement;
+    return new GameScene(toggle.checked ? "scene2": "scene1");
 }, {
-    skybox: (x: any) => {
+    skybox: (x: any) => {   // Custom skybox loading
         textures.set("skybox", {url: "skybox/px.jpg", data: new THREE.CubeTextureLoader().setPath("resources/textures/").load([
             "skybox/px.jpg", "skybox/nx.jpg", "skybox/py.jpg", "skybox/ny.jpg", "skybox/pz.jpg", "skybox/nz.jpg"
         ])});}

@@ -24,6 +24,7 @@ class GameScene extends GLBScene {
     raycaster: THREE.Raycaster = new THREE.Raycaster();
 
     decalCount = 100;
+    objCount = 50;
 
     constructor(name: string) {
         super(name);
@@ -36,17 +37,17 @@ class GameScene extends GLBScene {
         this.decals = new MessDecals(this);
         this.placeDecals();
 
-        // this.skybox = new THREE.CubeTextureLoader().setPath("resources/textures/").load([
-        //     "skybox/px.jpg", "skybox/nx.jpg", "skybox/py.jpg", "skybox/ny.jpg", "skybox/pz.jpg", "skybox/nz.jpg"
-        // ]);
         this.skybox = textures.getData("skybox") as CubeTexture;
         this.background = this.skybox;
+        this.environment = this.skybox;
 
         // Create bucket
         this.bucket = models.getData("bucket").clone();
         this.bucket.castShadow = true;
         (this.bucket.material as THREE.MeshStandardMaterial).envMap = this.skybox;
+        (this.bucket.material as THREE.MeshStandardMaterial).envMapIntensity = 0.5;
         (this.mesh?.material as THREE.MeshStandardMaterial).envMap = this.skybox;
+        (this.mesh?.material as THREE.MeshStandardMaterial).envMapIntensity = 0.5;
 
         this.add(this.bucket);
         this.bucket.translateY(-1.75);
@@ -68,6 +69,7 @@ class GameScene extends GLBScene {
 
         const normalTransform = new THREE.Matrix3().getNormalMatrix(this.mesh!.matrixWorld);
 
+        // Place decals
         for (let i = 0; i < this.decalCount; i++) {
             // Get location
             sampler.sample(pos, norm);
@@ -76,6 +78,20 @@ class GameScene extends GLBScene {
             norm.applyMatrix3(normalTransform).normalize();
             // Add decal
             this.decals.addDecal({ intersects: true, point: pos, normal: norm });
+        }
+
+        // Place objects
+        const up = new THREE.Vector3(0, 1, 0);
+        for (let placed = this.decalCount, i = 0; placed > 0 && i < 100; i++) {
+            // Get location
+            sampler.sample(pos, norm);
+            // Ensure in world coords
+            this.mesh?.localToWorld(pos);
+            norm.applyMatrix3(normalTransform).normalize();
+            if (up.angleTo(norm) < Math.PI/6) {
+                this.decals.addBlock({ intersects: true, point: pos, normal: norm });
+                placed -= 1;
+            }
         }
     }
 
@@ -92,6 +108,7 @@ class GameScene extends GLBScene {
     mouseDown() { document.body.requestPointerLock(); }
 
     destroy() {
+        super.destroy();
         document.removeEventListener("mousedown", this.mouseDown);
     }
 

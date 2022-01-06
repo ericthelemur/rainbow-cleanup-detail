@@ -72,7 +72,7 @@ const MODEL_PATH = RESOURCE_BASE + "models/";
 const TEXTURE_PATH = RESOURCE_BASE + "textures/";
 const AUDIO_PATH = RESOURCE_BASE + "audio/";
 
-class Models extends MyLoader<THREE.Mesh> {
+class Models extends MyLoader<THREE.Mesh | GLTF> {
     constructor() { super(new GLTFLoader().setPath(MODEL_PATH)) }
 
     // Model loader extracts child mesh from GLTF object
@@ -83,6 +83,14 @@ class Models extends MyLoader<THREE.Mesh> {
             const m = result.scene.children[0] as THREE.Mesh;
             return f(m);
         });
+    }
+
+    getGLTF(name: string) {
+        return this.get(name)!.data! as GLTF;
+    }
+    
+    getData(name: string) {
+        return this.get(name)!.data! as THREE.Mesh;
     }
 }
 

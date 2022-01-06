@@ -27,6 +27,7 @@ class Engine {
         this.renderer.toneMappingExposure = 2.2;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setClearColor(0x000000, 1);
 
         const container = document.getElementById('container')!;
         container.appendChild(this.renderer.domElement);

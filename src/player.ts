@@ -1,11 +1,13 @@
 
 import * as THREE from 'three';
+import { GLTF } from 'three-stdlib/loaders/GLTFLoader';
 import { Capsule } from 'three-stdlib/math/Capsule';
 import { clamp } from 'three/src/math/MathUtils';
 import { intersectionT, MessDecals } from './decals';
 import { engine, input, textures, models, Updatable, GLBScene, audio } from './engine/engine';
 import { loadTexturedModel } from './engine/loader';
 import { GameScene } from './gamescene';
+import { MenuScene } from './menuscene';
 
 export class Player extends Updatable {
     // Components
@@ -32,7 +34,7 @@ export class Player extends Updatable {
     // Cleaning vars
     waterCapacity: number = 5;
     _waterLevel: number = 0;
-    cleanTarget: number = 100;
+    cleanTarget: number = 150;
     _cleanCount: number = 0;
     cleanSFX: THREE.Audio;
 
@@ -97,31 +99,29 @@ export class Player extends Updatable {
         }).bind(this));
 
         // Assign and move brush model
-        this.brush = models.getData("brush").clone();
+        const brcont = new THREE.Object3D();
+        this.brush = (models.getData("brush") as THREE.Mesh).clone();
         (this.brush.material as THREE.MeshStandardMaterial).envMap = scene.skybox;
-        this.head.add(this.brush);
-        this.brush.translateZ(-0.8);
-        this.brush.translateY(-0.2);
-        this.brush.translateX(0.4);
+        (this.brush.material as THREE.MeshStandardMaterial).envMapIntensity = 0.5;
+        brcont.add(this.brush);
+        this.head.add(brcont);
+        brcont.translateZ(-0.8);
+        brcont.translateY(-0.2);
+        brcont.translateX(0.4);
 
-        this.brush.rotateX(Math.PI/2);
-        this.brush.rotateY(Math.PI / 6);
+        brcont.rotateX(Math.PI/2);
+        brcont.rotateY(Math.PI / 6);
 
-        this.cleanTarget = (this.scene as GameScene).decalCount;
+        this.cleanTarget = (this.scene as GameScene).decalCount + (this.scene as GameScene).objCount;
         this.cleanCount = 0;
 
-        const bgltf = models.getData("brush_gltf");
+        const bgltf = models.getGLTF("brush_gltf");
         const anim = bgltf.animations[0];
         this.mixer = new THREE.AnimationMixer(this.brush);
         this.cleanAnim = this.mixer.clipAction(anim, this.brush);
-        this.cleanAnim.play();
-        console.log("anim", this.cleanAnim, this.mixer);
-    }
+        this.cleanAnim.setLoop(THREE.LoopOnce, 1);
 
-    // Removes pointers on scene change
-    destroy() {
-        window.removeEventListener("pointerup", this.pointerUp);
-        document.body.removeEventListener("mousemove", this.mouseMove);
+
     }
 
     // Adds decal at players view location, for debugging
@@ -155,6 +155,7 @@ export class Player extends Updatable {
                     intersect.intersection.normal
                 );
                 engine.playSFX(this.cleanSFX);
+                this.cleanAnim?.stop();
                 this.cleanAnim?.play();
             }
         }
@@ -196,6 +197,7 @@ export class Player extends Updatable {
         this.playerOutOfBounds();
 
         this.updateChildren();
+        this.mixer?.update(deltaTime);
     }
     
     // User input
@@ -206,17 +208,23 @@ export class Player extends Updatable {
         if (input.isHeld('KeyS')) { this.velocity.add(this.getForwardVector().multiplyScalar(-speedDelta)); }
         if (input.isHeld('KeyA')) { this.velocity.add(this.getSideVector().multiplyScalar(-speedDelta)); }
         if (input.isHeld('KeyD')) { this.velocity.add(this.getSideVector().multiplyScalar(speedDelta)); }
-        if (input.isHeld('NumpadAdd')) { this.waterLevel += 1; }
-        if (input.isHeld('NumpadSubtract') && this.waterLevel > 0) { this.waterLevel -= 1; }
-
+        // Jump
         if (this.onFloor && input.isPressed('Space')) {
             this.velocity.y = this.jumpSpeed;
         }
-
+        // Camera toggle
         if (input.isPressed('KeyC')) {
             this.currCam = !this.currCam;
             engine.camera = this.currCam ? this.camera : this.topDownCamera;
         }
+        // Return to menu
+        if (input.isPressed("Escape")) engine.scene = new MenuScene(() => {
+            const toggle = document.getElementById("levelSwitch")! as HTMLInputElement;
+            return new GameScene(toggle.checked ? "scene2": "scene1");
+        });
+        
+        if (input.isHeld('NumpadAdd')) { this.waterLevel += 1; }
+        if (input.isHeld('NumpadSubtract') && this.waterLevel > 0) { this.waterLevel -= 1; }
     }
 
     // Update player position and check collisions
@@ -310,5 +318,11 @@ export class Player extends Updatable {
 
     get cleanCount() {
         return this._cleanCount;
+    }
+
+    // Removes pointers on scene change
+    destroy() {
+        window.removeEventListener("pointerup", this.pointerUp);
+        document.body.removeEventListener("mousemove", this.mouseMove);
     }
 }

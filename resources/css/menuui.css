@@ -1,3 +1,10 @@
+#menuui {
+    background-color: black;
+    background-image: url("../textures/menubg.png");
+    background-repeat: repeat-y;
+    background-size: 100%;
+}
+
 /* Start Button */
 button {
     margin: 16px;
@@ -8,8 +15,9 @@ button {
     overflow: hidden;
     cursor: pointer;
     background-color: transparent;
-    font-size: 1.2rem;
+    /* font-size: 1.2rem; */
 }
+
 button::after {
     transform: translate(-50%, -50%);
     left: 50%;
@@ -18,7 +26,9 @@ button::after {
     position: absolute;
     left: -20%;
     transition: 0.2s ease;
+    font-size: 1em;
 }
+
 button span {
     transition: 0.2s ease;
 }
@@ -43,15 +53,15 @@ button:hover:after {
     align-items: center;
 
     position: relative;
-    width: 8rem;
-    height: 2.1rem;
+    width: 9em;
+    height: 2.1em;
     border: 2px solid white;
 
     align-self: center;
     user-select: none;
     margin: 2rem;
     padding: 3px;
-    font-size: 0.8em;
+    /* font-size: 0.8em; */
 }
 
 /* LHS and RHS */

@@ -21,4 +21,8 @@ export class MenuScene extends BasicScene {
     finish() {
         engine.scene = this.nextScene();
     }
+
+    update(deltaTime: number): void {
+        engine.renderer.clear(true, true, true);
+    }
 }

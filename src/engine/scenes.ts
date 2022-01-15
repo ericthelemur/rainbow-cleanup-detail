@@ -6,10 +6,10 @@ import { engine, models } from './engine';
 export class Updatable {
     scene: BasicScene | null = null;
     init(scene: BasicScene) { this.scene = scene; } // Called once scene created
-    initAfter() {}                                  // Called after camera and other inits
-    start() {}                                      // Called once scene has finished transition
-    update(deltaTime: number) {}                    // Called per frame
-    destroy() {}                                    // Called when transitioning out
+    initAfter() { }                                  // Called after camera and other inits
+    start() { }                                      // Called once scene has finished transition
+    update(deltaTime: number) { }                    // Called per frame
+    destroy() { }                                    // Called when transitioning out
 }
 
 export class BasicScene extends THREE.Scene {
@@ -19,14 +19,14 @@ export class BasicScene extends THREE.Scene {
     ui: string = "";
 
     init() {
-        if (this.initialized >= 1) return; 
+        if (this.initialized >= 1) return;
         this.initialized = 1;
         this.updates.forEach(up => up.init(this));
         engine.ui = this.ui;
     }
 
     initAfter() {
-        if (this.initialized >= 2) return; 
+        if (this.initialized >= 2) return;
         this.initialized = 2;
         this.updates.forEach(up => up.initAfter());
     }
@@ -40,7 +40,7 @@ export class BasicScene extends THREE.Scene {
     }
 
     destroy() {
-        
+
         this.updates.forEach(up => up.destroy());
     }
 
@@ -92,15 +92,15 @@ export class GLBScene extends BasicScene {
         directionalLight.shadow.radius = 4;
         directionalLight.shadow.bias = -0.00006;
         this.add(directionalLight);
-        
+
         // Assign mesh and calculate collision octree
         this.worldOctree = new Octree();
-        
+
         this.mesh = models.getData(name);
         this.add(this.mesh);
-    
+
         this.worldOctree.fromGraphNode(this.mesh);
-    
+
         this.mesh.traverse(child => {
             if (child.type == "Mesh") {
                 child.castShadow = true;

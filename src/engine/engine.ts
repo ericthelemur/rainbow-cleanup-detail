@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import { Input } from './inputmap';
-import { Models, Textures, Audio } from './loader';
-import { Updatable, BasicScene, GLBScene } from './scenes';
+import { Audio, Models, Textures } from './loader';
+import { BasicScene, GLBScene, Updatable } from './scenes';
 
-export { 
+export {
     engine, input, textures, models, audio,
     Updatable, BasicScene, GLBScene
-}
+};
 
 const clock = new THREE.Clock();
 
@@ -15,7 +15,7 @@ class Engine {
     _camera: THREE.Camera | undefined = undefined;
     renderer: THREE.WebGLRenderer;
     audio: THREE.AudioListener;
-    
+
     constructor() {
         // Set renderer properties
         this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -38,7 +38,7 @@ class Engine {
     }
 
     // Updates camera and renderer properties on resize
-    onWindowResize () {
+    onWindowResize() {
         if (!this.scene) return;
         this.scene.cameras.forEach(c => {
             c.aspect = window.innerWidth / window.innerHeight;
@@ -48,7 +48,7 @@ class Engine {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    
+
     // Main loop
     run() {
         const deltaTime = Math.min(0.05, clock.getDelta());
@@ -57,12 +57,12 @@ class Engine {
             up.update(deltaTime);
         });
         input.update(deltaTime);
-        
+
         // Draw if scene has camera
         if (this.scene && this.camera) this.renderer.render(this.scene, this.camera);
     }
 
-    
+
     public get scene(): BasicScene | undefined {
         return this._scene;
     }
@@ -72,10 +72,10 @@ class Engine {
         // Destroy old
         this._scene?.destroy();
         engine.ui = "";
-        
+
         // Hide all ui layers apart from main
         const uis = document.getElementsByClassName("ui")!;
-        for (var i=0; i < uis.length; i++) (uis[i] as HTMLElement).hidden = true;
+        for (let i = 0; i < uis.length; i++) (uis[i] as HTMLElement).hidden = true;
         document.getElementById("ui")!.hidden = false;
 
         // Transition and call init
@@ -97,7 +97,7 @@ class Engine {
     public set ui(value: string) {
         document.getElementById("ui")!.innerHTML = value;
     }
-    
+
     public get ui() {
         return document.getElementById("ui")!.innerHTML;
     }
@@ -106,12 +106,12 @@ class Engine {
         this._camera = cam;
         cam?.add(this.audio);
     }
-    
+
     public get camera() {
         return this._camera;
     }
 
-    playSFX(sound: THREE.Audio, loop=false) {
+    playSFX(sound: THREE.Audio, loop = false) {
         if (sound.isPlaying) sound.stop();
         sound.setLoop(loop);
         sound.play();

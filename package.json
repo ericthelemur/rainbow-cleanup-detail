@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "build": "clear && tsc",
-        "watch": "watch \"npm run build\" ./src --wait=1",
+        "watch": "watch \"npm run build\" ./src --wait=0.5",
         "start": "es-dev-server --app-index index.html --node-resolve --watch --open"
     },
     "author": "author",
@@ -15,13 +15,11 @@
         "@types/three": "^0.134.0",
         "es-dev-server": "^2.1.0",
         "ts-node": "^10.4.0",
-        "typescript": "^4.5.2",
+        "typescript": "^4.5.4",
         "watch": "^1.0.2"
     },
     "repository": {},
     "dependencies": {
-        "lil-gui": "^0.15.0",
-        "mmd-parser": "^1.0.4",
         "three": "^0.134.0",
         "three-stdlib": "^2.6.2"
     }

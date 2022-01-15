@@ -1,17 +1,16 @@
 import * as THREE from 'three';
 import { DecalGeometry } from 'three-stdlib/geometries/DecalGeometry';
+import { engine, textures } from './engine/engine';
 import { GameScene } from './gamescene';
-import { BasicScene, engine, textures, Updatable } from './engine/engine';
-import { MeshPhongMaterial } from 'three';
 
-export { MessDecals, intersectionT }
+export { MessDecals, intersectionT };
 
 const collMat = new THREE.MeshBasicMaterial();
 
 // let line: THREE.Line;
 
-type intersectionT = { intersects: boolean; point: THREE.Vector3; normal: THREE.Vector3 };
-type dirtT = { decal: THREE.Mesh, collider: THREE.Mesh }
+type intersectionT = { intersects: boolean; point: THREE.Vector3; normal: THREE.Vector3; };
+type dirtT = { decal: THREE.Mesh, collider: THREE.Mesh; };
 
 class MessDecals {
     scene: GameScene;
@@ -30,46 +29,30 @@ class MessDecals {
         scene.add(this.colliders);
         scene.add(this.decals);
 
+        function mat(num: number) {
+            return new THREE.MeshPhongMaterial({
+                specular: 0x444444, shininess: 30,
+                map: textures.getData("decal_diff" + num.toString()),
+                normalMap: textures.getData("decal_norm" + num.toString()),
+                transparent: true, depthTest: true, depthWrite: false,
+                polygonOffset: true, polygonOffsetFactor: -4, wireframe: false
+            });
+        }
         // Creates materials
-        this.decalMaterials = [new THREE.MeshPhongMaterial({
-            specular: 0x444444, shininess: 30,
-            map: textures.getData("decal_diff1"), 
-            normalMap: textures.getData("decal_norm1"),
-            transparent: true, depthTest: true, depthWrite: false,
-            polygonOffset: true, polygonOffsetFactor: -4, wireframe: false
-        }),
-        new THREE.MeshPhongMaterial({
-            specular: 0x444444, shininess: 30,
-            map: textures.getData("decal_diff2"), 
-            normalMap: textures.getData("decal_norm2"),
-            transparent: true, depthTest: true, depthWrite: false,
-            polygonOffset: true, polygonOffsetFactor: -4, wireframe: false
-        }),
-        new THREE.MeshPhongMaterial({
-            specular: 0x444444, shininess: 30,
-            map: textures.getData("decal_diff3"), 
-            normalMap: textures.getData("decal_norm3"),
-            transparent: true, depthTest: true, depthWrite: false,
-            polygonOffset: true, polygonOffsetFactor: -4, wireframe: false
-        })];
+        this.decalMaterials = [mat(1), mat(2), mat(3)];
 
         this.blockMat = new THREE.MeshPhongMaterial();
         this.blocks = [
-            new THREE.Mesh(new THREE.SphereGeometry(0.5), this.blockMat),
-            new THREE.Mesh(new THREE.CylinderGeometry( 0, 0.5, 1, 3, 1), this.blockMat),
             new THREE.Mesh(new THREE.BoxGeometry(), this.blockMat),
+            new THREE.Mesh(new THREE.SphereGeometry(0.5), this.blockMat),
+            new THREE.Mesh(new THREE.CylinderGeometry(0, 0.6, 0.8, 3, 1), this.blockMat), // tetrahedron
             new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5), this.blockMat),
             new THREE.Mesh(new THREE.DodecahedronGeometry(0.5), this.blockMat),
             new THREE.Mesh(new THREE.ConeGeometry(0.5), this.blockMat),
+            new THREE.Mesh(new THREE.BoxGeometry(), this.blockMat),
         ];
-        // this.blocks[1].rotateX(2*Math.PI/3);
-        // this.blocks[1].applyMatrix4(new THREE.Matrix4().makeRotationAxis(
-        //     new THREE.Vector3(2, 0, -1).normalize(),
-        //     Math.atan(Math.sqrt(2)))
-        // );
     }
 
-    
 
     // Adds decal at the point and normal given
     addDecal(intersection: intersectionT) {
@@ -92,60 +75,46 @@ class MessDecals {
 
         // Create mesh
         const geom = new DecalGeometry(this.scene.mesh!, position, orientation, size);
-        const m = new THREE.Mesh(geom, material);
+        const mesh = new THREE.Mesh(geom, material);
 
-        this.decals.add(m);
-        // this.scene.add(m);
+        this.add(mesh, position);
+    }
+
+    // Adds decal at the point and normal given
+    addBlock(intersection: intersectionT) {
+        const position = intersection.point.clone();
+
+        const i = Math.trunc(Math.random() * this.blocks.length);
+        const block = (this.blocks[i]).clone();
+        const mat = (block.material as THREE.MeshPhongMaterial).clone();
+        mat.color.setHex(Math.random() * 0xffffff);
+        block.material = mat;
+
+        block.rotateY(Math.random() * 2 * Math.PI);
+
+        const scale = (1 + Math.random()) * 0.2;
+        position.addScaledVector(intersection.normal, scale * 0.5);
+        block.scale.set(scale, scale, scale);
+
+        block.position.set(position.x, position.y, position.z);
+
+        this.add(block, position);
+    }
+
+    // Adds block or decal to scene with collider
+    add(mesh: THREE.Mesh, position: THREE.Vector3) {
+        this.decals.add(mesh);   // Add o if given, otherwise the mesh
 
         // Create collider
         const sph = new THREE.Mesh(new THREE.SphereGeometry(0.75), collMat);
         sph.visible = false;
         sph.position.set(position.x, position.y, position.z);
-        
-        this.dirts.set(sph.id, {decal: m, collider: sph});
-        this.dirts.set(m.id, {decal: m, collider: sph});
+
+        const e = { decal: mesh, collider: sph };
+        this.dirts.set(sph.id, e);
+        this.dirts.set(mesh.id, e);
         this.colliders.add(sph);
     }
-
-        // Adds decal at the point and normal given
-        addBlock(intersection: intersectionT) {
-            const position = intersection.point.clone();
-    
-            // Use workaround with blank O3D to get Euler angles for decal projection
-            const o = new THREE.Object3D();
-            o.position.copy(intersection.point.clone().add(intersection.normal));
-            o.lookAt(intersection.point);
-            const orientation = o.rotation;
- 
-            // Randomize orientation, scale, and colour
-            orientation.z = Math.random() * 2 * Math.PI;
-            const scale = (1 + Math.random()) * 0.2;
-            const size = new THREE.Vector3(scale, scale, scale);
-            position.addScaledVector(intersection.normal, scale * 0.5);   
-    
-            const i = Math.trunc(Math.random() * this.blocks.length);
-            const block = (this.blocks[i]).clone();
-            const mat = (block.material as THREE.MeshPhongMaterial).clone();
-            mat.color.setHex(Math.random() * 0xffffff);
-            block.material = mat;
-            
-            // if (i == 3 || i == 5) orientation.x += Math.PI/2;
-            // block.rotation.set(orientation.x, orientation.y, orientation.z);
-            block.scale.set(size.x, size.y, size.z);
-            block.position.set(position.x, position.y, position.z);
-    
-            this.decals.add(block);
-            // this.scene.add(m);
-    
-            // Create collider
-            const sph = new THREE.Mesh(new THREE.SphereGeometry(0.75), collMat);
-            sph.visible = false;
-            sph.position.set(position.x, position.y, position.z);
-            
-            this.dirts.set(sph.id, {decal: block, collider: sph});
-            this.dirts.set(block.id, {decal: block, collider: sph});
-            this.colliders.add(sph);
-        }
 
     clean() {
         // Raycast onto colliders
@@ -181,9 +150,9 @@ class MessDecals {
     }
 
     // Cleanup
-    removeDecals () {
+    removeDecals() {
         const s = this.scene;
-        this.decals.traverse(function (d) {
+        this.decals.traverse(function(d) {
             s.remove(d);
         });
         this.decals.clear();

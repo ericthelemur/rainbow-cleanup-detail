@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GameScene } from '../gamescene';
 import { engine, textures } from './engine';
-import { BasicScene, Updatable } from './scenes';
+import { Updatable } from './scenes';
 
 // Vertex shader sets size and passes properties to fragment
 const vertexShader = `
@@ -33,9 +33,11 @@ void main() {
   gl_FragColor = texture2D(diffuseTexture, coords) * vColour;
 }`;
 
-type Particle = { position: THREE.Vector3, velocity: THREE.Vector3, 
-                rotation: number, size: number, 
-                colour: THREE.Color, life: number,  }
+type Particle = {
+    position: THREE.Vector3, velocity: THREE.Vector3,
+    rotation: number, size: number,
+    colour: THREE.Color, life: number,
+};
 
 export class ParticleSystem extends Updatable {
     scene: GameScene | null = null;
@@ -89,7 +91,8 @@ export class ParticleSystem extends Updatable {
             if (vel.dot(normal) < 0) vel.multiplyScalar(-1.0);
             const pos = loc.clone();
             // Add particle
-            this.particles.push({ position: pos, velocity: vel,
+            this.particles.push({
+                position: pos, velocity: vel,
                 rotation: 2.0 * Math.PI * Math.random(),
                 size: 10 + Math.random() * 20,
                 colour: colour, life: 1
@@ -108,7 +111,7 @@ export class ParticleSystem extends Updatable {
         this.particles.forEach((p) => {
             p.velocity.y -= 15 * deltaTime;
             p.position.addScaledVector(p.velocity, deltaTime);
-        })
+        });
 
         this.updatePositions();
     }

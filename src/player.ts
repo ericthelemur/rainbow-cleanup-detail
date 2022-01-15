@@ -1,11 +1,9 @@
 
 import * as THREE from 'three';
-import { GLTF } from 'three-stdlib/loaders/GLTFLoader';
 import { Capsule } from 'three-stdlib/math/Capsule';
 import { clamp } from 'three/src/math/MathUtils';
-import { intersectionT, MessDecals } from './decals';
-import { engine, input, textures, models, Updatable, GLBScene, audio } from './engine/engine';
-import { loadTexturedModel } from './engine/loader';
+import { MessDecals } from './decals';
+import { audio, engine, input, models, Updatable } from './engine/engine';
 import { GameScene } from './gamescene';
 import { MenuScene } from './menuscene';
 
@@ -18,7 +16,7 @@ export class Player extends Updatable {
     camera: THREE.PerspectiveCamera;
     topDownCamera: THREE.PerspectiveCamera;
     currCam = true;
-    
+
     mixer: THREE.AnimationMixer | null = null;
     cleanAnim: THREE.AnimationAction | null = null;
 
@@ -58,7 +56,7 @@ export class Player extends Updatable {
 
         this.topDownCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.topDownCamera.position.set(0, 15, 0);
-        this.topDownCamera.rotateX(-Math.PI/2);
+        this.topDownCamera.rotateX(-Math.PI / 2);
 
         this.velocity = new THREE.Vector3();
         this.direction = new THREE.Vector3();
@@ -87,14 +85,14 @@ export class Player extends Updatable {
             if (event.button == 2) this.splat();
             else if (event.button == 0) this.clean();
         }).bind(this));
-        
+
         // Add and store mouse move listener
         document.body.addEventListener('mousemove', this.mouseMove = ((event: MouseEvent) => {
             if (document.pointerLockElement === document.body) {
                 this.head.rotation.y -= event.movementX / 500;
                 this.head.rotation.x -= event.movementY / 500;
                 // Limit vertical rotation
-                this.head.rotation.x = clamp(this.head.rotation.x, -Math.PI/2, Math.PI/2);            
+                this.head.rotation.x = clamp(this.head.rotation.x, -Math.PI / 2, Math.PI / 2);
             }
         }).bind(this));
 
@@ -109,7 +107,7 @@ export class Player extends Updatable {
         brcont.translateY(-0.2);
         brcont.translateX(0.4);
 
-        brcont.rotateX(Math.PI/2);
+        brcont.rotateX(Math.PI / 2);
         brcont.rotateY(Math.PI / 6);
 
         this.cleanTarget = (this.scene as GameScene).decalCount + (this.scene as GameScene).objCount;
@@ -120,16 +118,14 @@ export class Player extends Updatable {
         this.mixer = new THREE.AnimationMixer(this.brush);
         this.cleanAnim = this.mixer.clipAction(anim, this.brush);
         this.cleanAnim.setLoop(THREE.LoopOnce, 1);
-
-
     }
 
     // Adds decal at players view location, for debugging
     splat() {
-        const gs = this.scene as GameScene
+        const gs = this.scene as GameScene;
         const decals = gs.decals;
         // Intersection call
-        const intersects: THREE.Intersection[] = gs.checkIntersection(window.innerWidth/2, window.innerHeight/2, this.scene!.children);
+        const intersects: THREE.Intersection[] = gs.checkIntersection(window.innerWidth / 2, window.innerHeight / 2, this.scene!.children);
 
         // Construct intersection result
         if (intersects.length > 0) {
@@ -148,7 +144,7 @@ export class Player extends Updatable {
                 // If successful, update levels and trigger particles
                 this.waterLevel = this._waterLevel - 1;
                 this.cleanCount = this._cleanCount + 1;
-                
+
                 gs.particles.clean(
                     intersect.collider.position.clone(),
                     (intersect.decal.material as THREE.MeshPhongMaterial).color,
@@ -180,8 +176,8 @@ export class Player extends Updatable {
     // Checks if player is looking at bucket, refills if so
     refillCheck() {
         if (this.waterLevel >= this.waterCapacity) return;
-        const gs = this.scene as GameScene
-        const intersects: THREE.Intersection[] = gs.checkIntersection(window.innerWidth/2, window.innerHeight/2, [gs.bucketCollider]);
+        const gs = this.scene as GameScene;
+        const intersects: THREE.Intersection[] = gs.checkIntersection(window.innerWidth / 2, window.innerHeight / 2, [gs.bucketCollider]);
         if (intersects.length > 0 && intersects[0].distance < 1.0) {
             this.waterLevel = this.waterCapacity;
             engine.playSFX(this.cleanSFX);
@@ -199,9 +195,9 @@ export class Player extends Updatable {
         this.updateChildren();
         this.mixer?.update(deltaTime);
     }
-    
+
     // User input
-    controls (deltaTime: number) {
+    controls(deltaTime: number) {
         const speedDelta = deltaTime * (this.onFloor ? this.speed : this.airSpeed);
 
         if (input.isHeld('KeyW')) { this.velocity.add(this.getForwardVector().multiplyScalar(speedDelta)); }
@@ -220,15 +216,15 @@ export class Player extends Updatable {
         // Return to menu
         if (input.isPressed("Escape")) engine.scene = new MenuScene(() => {
             const toggle = document.getElementById("levelSwitch")! as HTMLInputElement;
-            return new GameScene(toggle.checked ? "scene2": "scene1");
+            return new GameScene(toggle.checked ? "scene2" : "scene1");
         });
-        
+
         if (input.isHeld('NumpadAdd')) { this.waterLevel += 1; }
         if (input.isHeld('NumpadSubtract') && this.waterLevel > 0) { this.waterLevel -= 1; }
     }
 
     // Update player position and check collisions
-    updatePlayer (deltaTime: number) {
+    updatePlayer(deltaTime: number) {
         let damping = Math.exp(-30 * deltaTime) - 1;
 
         if (!this.onFloor) {
@@ -246,9 +242,9 @@ export class Player extends Updatable {
 
         if (this.brush) this.brush.updateMatrixWorld();
     }
-    
+
     // Check collision with scene
-    collisions () {
+    collisions() {
         const result = (this.scene! as GameScene).worldOctree.capsuleIntersect(this.collider);
         this.onFloor = false;
 
@@ -281,7 +277,7 @@ export class Player extends Updatable {
     }
 
     // Gets forward pointing vector
-    getForwardVector () {
+    getForwardVector() {
         const looking = new THREE.Vector3();
         engine.camera!.getWorldDirection(looking);
         if (!this.currCam) looking.multiplyScalar(-1);
@@ -292,7 +288,7 @@ export class Player extends Updatable {
     }
 
     // Gets sideways pointing vector
-    getSideVector () {
+    getSideVector() {
         return this.getForwardVector().cross(this.camera.up);
     }
 
@@ -301,7 +297,7 @@ export class Player extends Updatable {
         this._waterLevel = level;
         new Promise((() => {    // Update UI in promise to avoid delays
             this.waterElement.innerText = level.toString();
-            const text = level > 0? "🌢".repeat(level) : "Refill at Bucket"
+            const text = level > 0 ? "🌢".repeat(level) : "Refill at Bucket";
             this.waterMarkers.innerText = text; // + "○".repeat(this.waterCapacity - level);
         }).bind(this));
     }
@@ -312,7 +308,7 @@ export class Player extends Updatable {
     // Updates UI when setting cleanCount
     set cleanCount(count: number) {
         this._cleanCount = count;
-        const perc = 100.0 * count / this.cleanTarget
+        const perc = 100.0 * count / this.cleanTarget;
         this.cleanedElement.innerText = Math.trunc(perc).toString();
     }
 

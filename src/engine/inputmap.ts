@@ -9,12 +9,12 @@ window.addEventListener('keydown', (event: KeyboardEvent) => {
 });
 
 window.addEventListener('keyup', (event: KeyboardEvent) => {
-    changed.set(event.code,  false);
+    changed.set(event.code, false);
 });
 
 // Checks changed first then previous
 function get(keyCode: string): boolean {
-    var v = changed.get(keyCode);
+    const v = changed.get(keyCode);
     if (v !== undefined) return v;
     return getLast(keyCode);
 }
@@ -29,11 +29,11 @@ function getLast(keyCode: string): boolean {
 // Checks if key state last frame was lastState and is now nowState - used for press and release detect
 function getLastThis(keyCode: string, lastState: boolean, nowState: boolean) {
     // Check now
-    var now = changed.get(keyCode);
+    let now = changed.get(keyCode);
     if (now === undefined) now = false;
     if (now != nowState) return false;
     // Check last frame
-    var last = keyStates.get(keyCode);
+    let last = keyStates.get(keyCode);
     if (last === undefined) last = false;
     return last == lastState;
 }

@@ -1,16 +1,14 @@
-import { StringController } from 'lil-gui';
 import * as THREE from 'three';
-import { CubeTexture, Scene } from 'three';
-
+import { CubeTexture } from 'three';
 import { MeshSurfaceSampler } from "three-stdlib/math/MeshSurfaceSampler";
-import { intersectionT, MessDecals } from './decals';
-import { audio, engine, models, textures } from './engine/engine';
-import { loadTexturedModel } from './engine/loader';
+import { MessDecals } from './decals';
+import { engine, models, textures } from './engine/engine';
 import { ParticleSystem } from './engine/particles';
 import { GLBScene } from "./engine/scenes";
 import { Player } from './player';
 
-export { GameScene }
+
+export { GameScene };
 
 class GameScene extends GLBScene {
     gravity: number = 15;
@@ -33,7 +31,7 @@ class GameScene extends GLBScene {
         // Create player
         this.player = new Player();
         this.addUpdate("player", this.player);
-        
+
         this.decals = new MessDecals(this);
         this.placeDecals();
 
@@ -81,24 +79,25 @@ class GameScene extends GLBScene {
         }
 
         // Place objects
+        // Make upto 2 * count attempts to place - only place on flat-ish surfaces
         const up = new THREE.Vector3(0, 1, 0);
-        for (let placed = this.decalCount, i = 0; placed > 0 && i < 100; i++) {
+        for (let placed = this.objCount, i = 0; placed > 0 && i < 2 * this.objCount; i++) {
             // Get location
             sampler.sample(pos, norm);
-            // Ensure in world coords
-            this.mesh?.localToWorld(pos);
+            this.mesh?.localToWorld(pos); // Ensure in world coords
             norm.applyMatrix3(normalTransform).normalize();
-            if (up.angleTo(norm) < Math.PI/6) {
+            if (up.angleTo(norm) < Math.PI / 6) {
                 this.decals.addBlock({ intersects: true, point: pos, normal: norm });
                 placed -= 1;
             }
         }
+        console.log(this);
     }
 
     init() {
         super.init();
         engine.enableUI("gameui");
-        
+
         document.addEventListener('mousedown', this.mouseDown);
         document.body.requestPointerLock();
 
@@ -113,7 +112,7 @@ class GameScene extends GLBScene {
     }
 
     // Checks for intersection from the window coords given
-    checkIntersection (x: number, y: number, target: THREE.Object3D[] | null): THREE.Intersection[] {
+    checkIntersection(x: number, y: number, target: THREE.Object3D[] | null): THREE.Intersection[] {
         // Rescale to window coords
         const rayCoords = new THREE.Vector2();
         rayCoords.x = (x! / window.innerWidth) * 2 - 1;
@@ -128,5 +127,5 @@ class GameScene extends GLBScene {
         return intersects;
     }
 
-    
+
 }

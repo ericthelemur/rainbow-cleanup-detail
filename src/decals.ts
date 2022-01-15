@@ -31,7 +31,8 @@ class MessDecals {
 
         function mat(num: number) {
             return new THREE.MeshPhongMaterial({
-                specular: 0x444444, shininess: 30,
+                specular: 0x444444, 
+                shininess: 10,
                 map: textures.getData("decal_diff" + num.toString()),
                 normalMap: textures.getData("decal_norm" + num.toString()),
                 transparent: true, depthTest: true, depthWrite: false,
@@ -72,10 +73,13 @@ class MessDecals {
         const i = Math.trunc(Math.random() * this.decalMaterials.length);
         const material = (this.decalMaterials[i]).clone();
         material.color.setHex(Math.random() * 0xffffff);
+        // material.specular.set(material.color);
 
         // Create mesh
         const geom = new DecalGeometry(this.scene.mesh!, position, orientation, size);
         const mesh = new THREE.Mesh(geom, material);
+        mesh.receiveShadow = true;
+        mesh.castShadow = false;
 
         this.add(mesh, position);
     }
@@ -97,6 +101,8 @@ class MessDecals {
         block.scale.set(scale, scale, scale);
 
         block.position.set(position.x, position.y, position.z);
+        block.castShadow = true;
+        block.receiveShadow = true;
 
         this.add(block, position);
     }

@@ -54,6 +54,7 @@ export class Player extends Updatable {
         this.collider = new Capsule(new THREE.Vector3(0, 0.35, 0), new THREE.Vector3(0, 1, 0), 0.35);
         this.brush = null;
 
+
         this.topDownCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.topDownCamera.position.set(0, 15, 0);
         this.topDownCamera.rotateX(-Math.PI / 2);
@@ -97,18 +98,19 @@ export class Player extends Updatable {
         }).bind(this));
 
         // Assign and move brush model
-        const brcont = new THREE.Object3D();
+        const brpar = new THREE.Object3D();
         this.brush = (models.getData("brush") as THREE.Mesh).clone();
-        (this.brush.material as THREE.MeshStandardMaterial).envMap = scene.skybox;
-        (this.brush.material as THREE.MeshStandardMaterial).envMapIntensity = 0.5;
-        brcont.add(this.brush);
-        this.head.add(brcont);
-        brcont.translateZ(-0.8);
-        brcont.translateY(-0.2);
-        brcont.translateX(0.4);
+        const mat = this.brush.material as THREE.MeshStandardMaterial
+        // mat.envMap = scene.skybox;
+        // mat.envMapIntensity = 0.5;
+        brpar.add(this.brush);
+        this.head.add(brpar);
+        brpar.translateZ(-0.8);
+        brpar.translateY(-0.2);
+        brpar.translateX(0.4);
 
-        brcont.rotateX(Math.PI / 2);
-        brcont.rotateY(Math.PI / 6);
+        brpar.rotateX(Math.PI / 2);
+        brpar.rotateY(Math.PI / 6);
 
         this.cleanTarget = (this.scene as GameScene).decalCount + (this.scene as GameScene).objCount;
         this.cleanCount = 0;

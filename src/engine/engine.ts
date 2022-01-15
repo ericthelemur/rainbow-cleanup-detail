@@ -22,9 +22,10 @@ class Engine {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.shadowMap.enabled = true;
+        // this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.shadowMap.type = THREE.VSMShadowMap;
-        this.renderer.toneMapping = THREE.ReinhardToneMapping;
-        this.renderer.toneMappingExposure = 2.2;
+        // this.renderer.toneMapping = THREE.ReinhardToneMapping;
+        // this.renderer.toneMappingExposure = 2.2;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(0x000000, 1);

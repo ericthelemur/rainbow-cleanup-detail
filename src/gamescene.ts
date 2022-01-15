@@ -41,11 +41,11 @@ class GameScene extends GLBScene {
 
         // Create bucket
         this.bucket = models.getData("bucket").clone();
-        this.bucket.castShadow = true;
         (this.bucket.material as THREE.MeshStandardMaterial).envMap = this.skybox;
         (this.bucket.material as THREE.MeshStandardMaterial).envMapIntensity = 0.5;
         (this.mesh?.material as THREE.MeshStandardMaterial).envMap = this.skybox;
         (this.mesh?.material as THREE.MeshStandardMaterial).envMapIntensity = 0.5;
+        this.bucket.castShadow = true;
 
         this.add(this.bucket);
         this.bucket.translateY(-1.75);
@@ -54,7 +54,7 @@ class GameScene extends GLBScene {
         // Create bucket collider
         this.bucketCollider = new THREE.Mesh(new THREE.SphereGeometry(1));
         this.bucketCollider.visible = false;
-        this.bucket!.add(this.bucketCollider);
+        this.bucket.add(this.bucketCollider);
 
         this.particles = new ParticleSystem();
     }

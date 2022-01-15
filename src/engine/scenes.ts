@@ -79,19 +79,20 @@ export class GLBScene extends BasicScene {
         this.add(fillLight2);
 
         const directionalLight = new THREE.DirectionalLight(0xffffaa, 1.2);
-        directionalLight.position.set(-5, 25, -1);
+        directionalLight.position.set(-30, 50, -2);
         directionalLight.castShadow = true;
-        directionalLight.shadow.camera.near = 0.01;
-        directionalLight.shadow.camera.far = 500;
+        directionalLight.shadow.radius = 4;
+        directionalLight.shadow.bias = -0.0005;
+        directionalLight.shadow.mapSize.width = 4096;
+        directionalLight.shadow.mapSize.height = 4096;
+        directionalLight.shadow.camera.near = 50;
+        directionalLight.shadow.camera.far = 150;
         directionalLight.shadow.camera.right = 30;
         directionalLight.shadow.camera.left = -30;
         directionalLight.shadow.camera.top = 30;
         directionalLight.shadow.camera.bottom = -30;
-        directionalLight.shadow.mapSize.width = 1024;
-        directionalLight.shadow.mapSize.height = 1024;
-        directionalLight.shadow.radius = 4;
-        directionalLight.shadow.bias = -0.00006;
         this.add(directionalLight);
+        // this.add(new THREE.CameraHelper(directionalLight.shadow.camera));
 
         // Assign mesh and calculate collision octree
         this.worldOctree = new Octree();

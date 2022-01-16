@@ -1,5 +1,6 @@
 
 import * as THREE from 'three';
+import { Object3D } from "three";
 import { Capsule } from 'three-stdlib/math/Capsule';
 import { clamp } from 'three/src/math/MathUtils';
 import { MessDecals } from './decals';
@@ -44,6 +45,7 @@ export class Player extends Updatable {
     cleanedElement: HTMLElement;
     waterElement: HTMLElement;
     waterMarkers: HTMLElement;
+    brpar: THREE.Object3D | undefined = undefined;
 
     constructor() {
         super();
@@ -101,16 +103,33 @@ export class Player extends Updatable {
         const brpar = new THREE.Object3D();
         this.brush = (models.getData("brush") as THREE.Mesh).clone();
         const mat = this.brush.material as THREE.MeshStandardMaterial
-        // mat.envMap = scene.skybox;
-        // mat.envMapIntensity = 0.5;
+        mat.envMap = scene.skybox;
+        mat.envMapIntensity = 0.5;
+
         brpar.add(this.brush);
-        this.head.add(brpar);
+        // this.head.add(brpar);
         brpar.translateZ(-0.8);
         brpar.translateY(-0.2);
         brpar.translateX(0.4);
 
         brpar.rotateX(Math.PI / 2);
         brpar.rotateY(Math.PI / 6);
+
+        // Create second scene just for brush (so rendered on top)
+        // Possibly a way to address with layers and render order, but cannot set layer render order
+        // And cannot disable depth test, otherwise the brush model does not render correctly
+        // Unfortunately, this leads to no shadows on the brush
+        const s2 = new THREE.Scene();
+        this.brpar = new Object3D();
+        this.brpar.add(brpar);
+        s2.add(this.brpar);
+        engine.scene2 = s2;
+
+        scene.traverse((obj) => {
+            if (obj instanceof THREE.Light) {
+                s2.add(obj.clone());
+            }
+        });
 
         this.cleanTarget = (this.scene as GameScene).decalCount + (this.scene as GameScene).objCount;
         this.cleanCount = 0;
@@ -276,6 +295,8 @@ export class Player extends Updatable {
         this.camera.rotation.copy(this.head.rotation);
         this.topDownCamera.position.x = this.head.position.x;
         this.topDownCamera.position.z = this.head.position.z;
+        this.brpar!.position.copy(this.head.position);
+        this.brpar!.rotation.copy(this.head.rotation);
     }
 
     // Gets forward pointing vector

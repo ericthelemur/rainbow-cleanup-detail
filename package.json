@@ -4,19 +4,26 @@
     "description": "description",
     "main": "index.js",
     "scripts": {
-        "build": "clear && tsc",
-        "watch": "watch \"npm run build\" ./src --wait=0.5",
-        "start": "es-dev-server --app-index index.html --node-resolve --watch --open"
+        "start": "webpack serve --open --mode=development",
+        "build": "webpack --mode=development",
+        "build:prod": "webpack --mode=production",
+        "watch": "webpack --watch"
     },
     "author": "author",
     "license": "ISC",
     "devDependencies": {
         "@types/node": "^16.11.10",
         "@types/three": "^0.134.0",
+        "clean-webpack-plugin": "^4.0.0",
+        "copy-webpack-plugin": "^10.2.0",
         "es-dev-server": "^2.1.0",
+        "html-webpack-plugin": "^5.5.0",
+        "ts-loader": "^9.2.6",
         "ts-node": "^10.4.0",
         "typescript": "^4.5.4",
-        "watch": "^1.0.2"
+        "watch": "^1.0.2",
+        "webpack-cli": "^4.9.1",
+        "webpack-dev-server": "^4.7.3"
     },
     "repository": {},
     "dependencies": {

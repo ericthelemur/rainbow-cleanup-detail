@@ -12,6 +12,7 @@ const clock = new THREE.Clock();
 
 class Engine {
     private _scene: BasicScene | undefined = undefined;
+    scene2: THREE.Scene | undefined = undefined;
     _camera: THREE.Camera | undefined = undefined;
     renderer: THREE.WebGLRenderer;
     audio: THREE.AudioListener;
@@ -29,6 +30,8 @@ class Engine {
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setClearColor(0x000000, 1);
+        this.renderer.sortObjects = true;
+        this.renderer.autoClear = false;
 
         const container = document.getElementById('container')!;
         container.appendChild(this.renderer.domElement);
@@ -60,7 +63,14 @@ class Engine {
         input.update(deltaTime);
 
         // Draw if scene has camera
-        if (this.scene && this.camera) this.renderer.render(this.scene, this.camera);
+        if (this.scene && this.camera) {
+            this.renderer.clear();
+            this.renderer.render(this.scene, this.camera);
+            if (this.scene2) {
+                this.renderer.clearDepth();
+                this.renderer.render(this.scene2, this.camera);
+            }
+        }
     }
 
 

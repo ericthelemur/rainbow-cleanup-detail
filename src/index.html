@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Test</title>
+    <meta charset="UTF-8" />
+
+    <link href="./resources/css/index.css" rel="stylesheet">
+    <link href="./resources/css/loader.css" rel="stylesheet">
+    <link href="./resources/css/gameui.css" rel="stylesheet">
+    <link href="./resources/css/menuui.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="ui" class="ui"></div>
+    
+    <div id="gameui" class="ui" hidden>
+        <img id="crosshair" src="resources/textures/ui/crosshair.png">
+        <img id="crosshairWarn" src="resources/textures/ui/crosshairRed.png">
+        <div id="waterMarkers">🌢🌢🌢</div>
+        <p id="cleaned"><b id="cleanedPercent">0</b>% Clean</p>
+        <p id="water">🌢 <b id="waterLevel">0</b>/<span id="waterMax">5</span></p>
+    </div>
+
+    <div id="loadui" class="ui" hidden>
+        <div class="centred">
+            <div class="loader"></div>
+            <progress id="loadprogress" max=4 value=1></progress>
+        </div>
+    </div>
+    
+    <div id="menuui" class="ui" hidden>
+        <div class="centred">
+            <h1>Rainbow Clean-up Detail</h1>
+            <!-- <p>Computer Graphics Coursework by Owen Connors</p> -->
+            <p>Based on <a href="https://store.steampowered.com/app/246900/Viscera_Cleanup_Detail/">Viscera Cleanup Detail</a>. The aim is to clean the level of all mess.<br>A paint splatter can be cleaned for one "water charge",<br>which can be refilled at the central bucket.</p>            
+            
+            <button id=startbtn><span>Start</span></button>
+
+            <div class="toggle">
+                <span class="option">Level 1</span><span class="option">Level 2</span>
+                <input id="levelSwitch" type="checkbox"/>
+                <label for="levelSwitch">
+                  <div class="card slide">
+                      <div class="outline"></div>
+                    </div>
+                </label>
+            </div>
+
+            <p>
+                <kdb>␾</kdb> to look around <kdb>WASD</kdb> to move<br>
+                <kdb>⟵</kdb> to clean, pick-up, and refill at bucket<br>
+                <kdb>C</kdb> to switch camera view<br>
+                <kdb>␯</kdb> to return to this menu
+            </p>
+
+        </div>
+    </div>
+    <!-- <canvas id="gl-canvas" width="1024" height="1024"></canvas> -->
+    <script type="module" charset="UTF-8" src="dist/index.js"></script>
+</body>
+
+</html>

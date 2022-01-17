@@ -81,8 +81,10 @@ export class GLBScene extends BasicScene {
         const directionalLight = new THREE.DirectionalLight(0xffffaa, 1.2);
         directionalLight.position.set(-30, 50, -2);
         directionalLight.castShadow = true;
+        // Soften and reduce artifacts in shadows
         directionalLight.shadow.radius = 4;
         directionalLight.shadow.bias = -0.0005;
+        // Ensure shadow encompasses scene
         directionalLight.shadow.mapSize.width = 4096;
         directionalLight.shadow.mapSize.height = 4096;
         directionalLight.shadow.camera.near = 50;

@@ -4,12 +4,19 @@ import { LoadingScene } from "./engine/loadscreen";
 import { GameScene } from "./gamescene";
 import { MenuScene } from "./menuscene";
 
+let bgmusic: THREE.Audio | undefined = undefined;
+
 // Give textures and models to load
 const menu: MenuScene = engine.scene = new MenuScene(() => new LoadingScene({
     // Textures
-    decal_diff1: 'decals/diff1.png', decal_norm1: 'decals/norm1.png',
-    decal_diff2: 'decals/diff2.png', decal_norm2: 'decals/norm2.png',
-    decal_diff3: 'decals/diff3.png', decal_norm3: 'decals/norm3.png',
+    // decal_diff1: 'decals/diff1.png', decal_norm1: 'decals/norm1.png',
+    // decal_diff2: 'decals/diff2.png', decal_norm2: 'decals/norm2.png',
+    // decal_diff3: 'decals/diff3.png', decal_norm3: 'decals/norm3.png',
+    decal_diff4: 'decals/diff4.png', decal_norm4: 'decals/norm4.png',
+    decal_diff5: 'decals/diff5.png', decal_norm5: 'decals/norm5.png',
+    decal_diff6: 'decals/diff6.png', decal_norm6: 'decals/norm6.png',
+    decal_diff7: 'decals/diff7.png', decal_norm7: 'decals/norm7.png',
+    decal_part: 'decals/diffparticle.png',
     skybox: "skybox/px.jpg"
 }, {    // Meshes
     scene1: "collision-world.glb",
@@ -21,19 +28,24 @@ const menu: MenuScene = engine.scene = new MenuScene(() => new LoadingScene({
     bucket: {
         model: "Bucket/bucket.gltf", diffuse: "bucket/bucket_col.png", normal: "bucket/bucket_norm.png",
         roughness: "bucket/bucket_metal.png", metal: "bucket/bucket_rough.png"
-    }
+    },
+    powerup: "powerup.glb"
 
 }, {    // Audio
-    musicloop: "bgmusic.wav",
-    clean: "clean.mp3"
+    music1: "bgmusic.wav",
+    music2: "bgmusic2.mp3",
+    clean: "clean.mp3",
+    powerup: "powerup.mp3"
 }, () => {  // On load
+
+    const toggle = document.getElementById("levelSwitch")! as HTMLInputElement;
     // Play bg music
-    const bgmusic = audio.getData("musicloop");
+    if (bgmusic) bgmusic.stop();
+    bgmusic = audio.getData(toggle.checked ? "music2" : "music1");
     bgmusic.setVolume(0.15);
     engine.playSFX(bgmusic, true);
 
-    const toggle = document.getElementById("levelSwitch")! as HTMLInputElement;
-    return new GameScene(toggle.checked ? "scene2" : "scene1");
+    return new GameScene(toggle.checked ? "scene1" : "scene2");
 }, {
     skybox: (x: any) => {   // Custom skybox loading
         textures.set("skybox", {

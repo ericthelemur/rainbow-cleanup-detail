@@ -1,6 +1,7 @@
 import { Updatable } from "./scenes";
 
 // KeyStates is states last complete frame, and changed is what has changed since
+// More efficient than fully copying and replacing each frame
 const keyStates: Map<string, boolean> = new Map();
 const changed: Map<string, boolean> = new Map();
 

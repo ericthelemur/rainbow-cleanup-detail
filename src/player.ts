@@ -1,9 +1,8 @@
 
 import * as THREE from 'three';
-import { Object3D } from "three";
 import { Capsule } from 'three-stdlib/math/Capsule';
 import { clamp } from 'three/src/math/MathUtils';
-import { MessDecals } from './decals';
+import { DirtType, MessDecals } from './decals';
 import { audio, engine, input, models, Updatable } from './engine/engine';
 import { GameScene } from './gamescene';
 import { MenuScene } from './menuscene';
@@ -45,7 +44,8 @@ export class Player extends Updatable {
     cleanedElement: HTMLElement;
     waterElement: HTMLElement;
     waterMarkers: HTMLElement;
-    brpar: THREE.Object3D | undefined = undefined;
+    brpar: THREE.Object3D = new THREE.Object3D();
+    particleEmitter: THREE.Object3D = new THREE.Object3D();
 
     constructor() {
         super();
@@ -99,15 +99,35 @@ export class Player extends Updatable {
             }
         }).bind(this));
 
+        // Create brush
+        this.brush = this.addBrush();
+        
+        // Clean vars for the GUI
+        this.cleanTarget = (this.scene as GameScene).decalCount + (this.scene as GameScene).objCount;
+        this.cleanCount = 0;
+
+        // Add clean animation
+        const bgltf = models.getGLTF("brush_gltf");
+        const anim = bgltf.animations[0];
+        this.mixer = new THREE.AnimationMixer(this.brush);
+        this.cleanAnim = this.mixer.clipAction(anim, this.brush);
+        this.cleanAnim.setLoop(THREE.LoopOnce, 1);
+    }
+
+    addBrush() {
         // Assign and move brush model
-        const brpar = new THREE.Object3D();
-        this.brush = (models.getData("brush") as THREE.Mesh).clone();
-        const mat = this.brush.material as THREE.MeshStandardMaterial
-        mat.envMap = scene.skybox;
+        const brush = (models.getData("brush") as THREE.Mesh).clone();
+        const mat = brush.material as THREE.MeshStandardMaterial
+        mat.envMap = (this.scene! as GameScene).skybox;
         mat.envMapIntensity = 0.5;
 
-        brpar.add(this.brush);
-        // this.head.add(brpar);
+        brush.add(this.particleEmitter);
+        this.particleEmitter.rotateX(Math.PI/2);
+        this.particleEmitter.translateY(0.2);
+
+        // Have a parent element for the animation to be relative to
+        const brpar = new THREE.Object3D();
+        brpar.add(brush);
         brpar.translateZ(-0.8);
         brpar.translateY(-0.2);
         brpar.translateX(0.4);
@@ -120,25 +140,16 @@ export class Player extends Updatable {
         // And cannot disable depth test, otherwise the brush model does not render correctly
         // Unfortunately, this leads to no shadows on the brush
         const s2 = new THREE.Scene();
-        this.brpar = new Object3D();
         this.brpar.add(brpar);
         s2.add(this.brpar);
         engine.scene2 = s2;
 
-        scene.traverse((obj) => {
+        this.scene!.traverse((obj) => {
             if (obj instanceof THREE.Light) {
                 s2.add(obj.clone());
             }
         });
-
-        this.cleanTarget = (this.scene as GameScene).decalCount + (this.scene as GameScene).objCount;
-        this.cleanCount = 0;
-
-        const bgltf = models.getGLTF("brush_gltf");
-        const anim = bgltf.animations[0];
-        this.mixer = new THREE.AnimationMixer(this.brush);
-        this.cleanAnim = this.mixer.clipAction(anim, this.brush);
-        this.cleanAnim.setLoop(THREE.LoopOnce, 1);
+        return brush;
     }
 
     // Adds decal at players view location, for debugging
@@ -163,35 +174,58 @@ export class Player extends Updatable {
             const intersect = gs.decals.clean();
             if (intersect) {
                 // If successful, update levels and trigger particles
-                this.waterLevel = this._waterLevel - 1;
-                this.cleanCount = this._cleanCount + 1;
 
-                gs.particles.clean(
-                    intersect.collider.position.clone(),
-                    (intersect.decal.material as THREE.MeshPhongMaterial).color,
-                    intersect.intersection.normal
-                );
                 engine.playSFX(this.cleanSFX);
                 this.cleanAnim?.stop();
                 this.cleanAnim?.play();
+
+                // Only do water particles if decal
+                if (intersect.type == DirtType.DECAL) {
+                    this.waterLevel = this._waterLevel - 1;
+                    this.cleanCount = this._cleanCount + 1;
+
+                    const mat = intersect.decal.material as THREE.MeshPhongMaterial
+                    gs.particles.clean(
+                        intersect.collider.position,
+                        new THREE.Color("white").lerp(mat.color, 0.5),  // Mix some white, as particles not effected by lights
+                        intersect.intersection.normal
+                    );
+                    this.brushParticles();
+                }
+
+                if (intersect.type == DirtType.POWERUP) {
+                    this.randomPowerup();
+                }
+            } else {    // Have brush particles if cleaning decal or no clean
+                this.brushParticles();
             }
         }
         // Check for refill at bucket
         const refilled = this.refillCheck();
-
-        // Crosshair and reminder flash if water empty
         if (!refilled && this.waterLevel == 0) {
-            const we = this.waterMarkers;
-            // Animations defined in gameui.css
-            we.style.animation = "flashRed 0.5s 1 ease";
-            const warnCH = document.getElementById("crosshairWarn")!;
-            warnCH.style.animation = "fadeInOut 0.25s 1 ease";
-            // Remove animation in a couple of seconds
-            new Promise((re) => setTimeout(re, 600)).then(() => {
-                we.style.animation = "";
-                warnCH.style.animation = "";
-            });
+            this.refillAnim();
         }
+    }
+
+    randomPowerup() {
+        const t = Math.random();
+        if (t < 0.75) {
+            this.waterCapacity += 5;
+            document.getElementById("waterMax")!.innerText = this.waterCapacity.toString();
+            this.waterLevel = this.waterCapacity;
+        } else {
+            this.speed *= 1.5;
+        }
+    }
+
+    brushParticles() {
+        const gs = this.scene! as GameScene;
+        // Brush water effect if enough water
+        const p2 = new THREE.Vector3(); 
+        const d2 = new THREE.Vector3();
+        this.particleEmitter.getWorldPosition(p2);
+        this.particleEmitter.getWorldDirection(d2);
+        gs.particles.clean(p2, new THREE.Color(0x3c9ee8), d2, 50);
     }
 
     // Checks if player is looking at bucket, refills if so
@@ -205,6 +239,20 @@ export class Player extends Updatable {
             return true;
         }
         return false;
+    }
+
+    // Crosshair and reminder flash if water empty
+    refillAnim() {
+        const we = this.waterMarkers;
+        // Animations defined in gameui.css
+        we.style.animation = "flashRed 0.5s 1 ease";
+        const warnCH = document.getElementById("crosshairWarn")!;
+        warnCH.style.animation = "fadeInOut 0.25s 1 ease";
+        // Remove animation in a couple of seconds
+        new Promise((re) => setTimeout(re, 600)).then(() => {
+            we.style.animation = "";
+            warnCH.style.animation = "";
+        });
     }
 
     // Scene's update loop

@@ -19,17 +19,19 @@ export class LoadingScene extends BasicScene {
     totalProgress: number = 0;
 
     // Function returning scene to transition to once loaded
-    afterScene: () => BasicScene;
+    nextScene: () => BasicScene;
 
+    // texs is textures to load: name and path; mods is same, but has option to give model material locations; aud is same as texs
+    // nextScene is generator for the next scene; onLoads are option custom onLoad functions for those that need it
     constructor(texs: { [name: string]: string; }, mods: { [name: string]: modelArgT; }, aud: { [name: string]: string; },
-            afterScene: () => BasicScene, onLoads: { [name: string]: (x: any) => void; } = {}) {
+            nextScene: () => BasicScene, onLoads: { [name: string]: (x: any) => void; } = {}) {
         super();
         this.texs = texs;
         this.mods = mods;
         this.aud = aud;
         this.onLoads = onLoads;
 
-        this.afterScene = afterScene;
+        this.nextScene = nextScene;
         this.progressBar = document.getElementById("loadprogress")! as HTMLProgressElement;
     }
 
@@ -52,7 +54,7 @@ export class LoadingScene extends BasicScene {
                     urls.normal, urls.roughness, urls.metal));
         }
 
-
+        // Audio load calls
         for (var key in this.aud) {
             this.addPromise(key, audio.load(key, this.aud[key]));
         }
@@ -60,22 +62,20 @@ export class LoadingScene extends BasicScene {
         this.progressBar.max = this.promises.length;
 
         return Promise.all(this.promises).then(() => {
-            engine.scene = this.afterScene();
-            console.log("Loading Complete", textures, models);
+            const s = this.nextScene();
+            engine.scene = s;
+            console.log("Loading Complete", textures, models, audio);
         });
     }
 
+    incProg() { this.progressBar.value += 1 }
+
+    // Adds promise to this.promises and add progress increment and any custom onLoad after it
     addPromise(key: string, promise?: Promise<any>) {
         if (promise) {
             if (key in this.onLoads) promise = promise.then(this.onLoads[key]);
-
-            this.promises.push(this.progressTick(promise));
+            this.totalProgress += 1;
+            this.promises.push(promise.then(this.incProg.bind(this)));
         }
-    }
-
-    // Increases progress when one done
-    progressTick(promise: Promise<any>) {
-        this.totalProgress += 1;
-        return promise.then((() => this.progressBar.value += 1).bind(this));
     }
 }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CubeTexture } from 'three';
-import { MeshSurfaceSampler } from "three-stdlib/math/MeshSurfaceSampler";
+import { MeshSurfaceSampler } from "./mymeshsampler";
 import { MessDecals } from './decals';
 import { engine, models, textures } from './engine/engine';
 import { ParticleSystem } from './engine/particles';
@@ -23,17 +23,17 @@ class GameScene extends GLBScene {
 
     decalCount = 100;
     objCount = 50;
+    powerUpCount = 3;
 
     constructor(name: string) {
         super(name);
-        // Link scenes
 
         // Create player
         this.player = new Player();
         this.addUpdate("player", this.player);
 
-        this.decals = new MessDecals(this);
-        this.placeDecals();
+        this.decals = new MessDecals();
+        this.addUpdate("decals", this.decals);
 
         this.skybox = textures.getData("skybox") as CubeTexture;
         this.background = this.skybox;
@@ -59,6 +59,7 @@ class GameScene extends GLBScene {
         this.particles = new ParticleSystem();
     }
 
+
     // Randomly place decals
     placeDecals() {
         const sampler = new MeshSurfaceSampler(this.mesh!).build();
@@ -82,7 +83,6 @@ class GameScene extends GLBScene {
         // Make upto 2 * count attempts to place - only place on flat-ish surfaces
         const up = new THREE.Vector3(0, 1, 0);
         for (let placed = this.objCount, i = 0; placed > 0 && i < 2 * this.objCount; i++) {
-            // Get location
             sampler.sample(pos, norm);
             this.mesh?.localToWorld(pos); // Ensure in world coords
             norm.applyMatrix3(normalTransform).normalize();
@@ -91,6 +91,18 @@ class GameScene extends GLBScene {
                 placed -= 1;
             }
         }
+
+        // Place powerups in same way as objects
+        for (let placed = this.powerUpCount, i = 0; placed > 0 && i < 5 * this.powerUpCount; i++) {
+            sampler.sample(pos, norm);
+            this.mesh?.localToWorld(pos); // Ensure in world coords
+            norm.applyMatrix3(normalTransform).normalize();
+            if (up.angleTo(norm) < Math.PI / 6) {
+                this.decals.addPowerUp({ intersects: true, point: pos, normal: norm });
+                placed -= 1;
+            }
+        }
+
         console.log(this);
     }
 
@@ -104,11 +116,17 @@ class GameScene extends GLBScene {
         this.addUpdate("particles", this.particles);
     }
 
+    initAfter(): void {
+        super.initAfter();
+        this.placeDecals();
+    }
+
     mouseDown() { document.body.requestPointerLock(); }
 
     destroy() {
         super.destroy();
         document.removeEventListener("mousedown", this.mouseDown);
+        this.decals.removeDecals();
     }
 
     // Checks for intersection from the window coords given
@@ -126,6 +144,4 @@ class GameScene extends GLBScene {
 
         return intersects;
     }
-
-
 }

@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>Test</title>
+    <title>Rainbow Clean-up Detail</title>
     <meta charset="UTF-8" />
 
     <link href="./resources/css/index.css" rel="stylesheet">
@@ -34,8 +34,12 @@
     <div id="menuui" class="ui" hidden>
         <div class="centred">
             <h1>Rainbow Clean-up Detail</h1>
-            <!-- <p>Computer Graphics Coursework by Owen Connors</p> -->
-            <p>Based on <a href="https://store.steampowered.com/app/246900/Viscera_Cleanup_Detail/">Viscera Cleanup Detail</a>. The aim is to clean the level of all mess.<br>A paint splatter can be cleaned for one "water charge",<br>which can be refilled at the central bucket.</p>            
+            <p>Computer Graphics Coursework by Owen Connors</p>
+            <p>Based on <a href="https://store.steampowered.com/app/246900/Viscera_Cleanup_Detail/">Viscera Cleanup Detail</a>. The aim is to clean the level of all mess.
+                <br>A paint splatter can be cleaned for one water, which can be refilled at the bucket.
+                <br>The objects need to be picked up.
+                <br>Power-ups emit a quiet sound, and either increase your water capactiy or speed.
+            </p>            
             
             <button id=startbtn><span>Start</span></button>
 
@@ -43,9 +47,7 @@
                 <span class="option">Level 1</span><span class="option">Level 2</span>
                 <input id="levelSwitch" type="checkbox"/>
                 <label for="levelSwitch">
-                  <div class="card slide">
-                      <div class="outline"></div>
-                    </div>
+                    <div class="card slide"><div class="outline"></div></div>
                 </label>
             </div>
 
@@ -55,11 +57,18 @@
                 <kdb>C</kdb> to switch camera view<br>
                 <kdb>␯</kdb> to return to this menu
             </p>
-
         </div>
+        <p style="position: absolute; right: 0; bottom: 0; font-size: 0.75em; margin: 1em">
+                Splatter textures by <a href="https://www.deviantart.com/duzulek">duzulek</a>
+            <br>Splatter normals generated from <a href="https://cpetry.github.io/NormalMap-Online/">Christian Petry</a>
+            <br>2nd Level by <a href="https://threejs.org/examples/?q=fps#games_fps">Three.js examples</a>
+            <br>1st Level Music by <a href="https://www.looperman.com/loops/detail/218197/ambient-loop-130bpm-130bpm-hip-hop-bass-guitar-loop">FinMusic</a>
+            <br>2nd Level Music by <a href="https://orangefreesounds.com/ambient-music-loop">Alexander Blu</a>
+            <br>Other SFX from <a href="www.fesliyanstudios.com">Fesliyan Studios</a>
+    </p>
     </div>
     <!-- <canvas id="gl-canvas" width="1024" height="1024"></canvas> -->
-    <script type="module" charset="UTF-8" src="dist/index.js"></script>
+    <script charset="UTF-8" src="dist/index.js"></script>
 </body>
 
 </html>

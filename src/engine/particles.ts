@@ -50,7 +50,7 @@ export class ParticleSystem extends Updatable {
         super();
         // Shader uniforms
         const uniforms = {
-            diffuseTexture: { value: textures.getData("decal_diff1") },
+            diffuseTexture: { value: textures.getData("decal_part") },  
         };
 
         this.material = new THREE.ShaderMaterial({
@@ -58,7 +58,7 @@ export class ParticleSystem extends Updatable {
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
             depthTest: true, depthWrite: false,
-            transparent: false,
+            transparent: true,
             vertexColors: true
         });
 
@@ -80,15 +80,14 @@ export class ParticleSystem extends Updatable {
         this.updateGeometry();
     }
 
-    // Pop of particles on cleaning decal
-    clean(loc: THREE.Vector3, colour: THREE.Color, normal: THREE.Vector3) {
-        // Approx decal colour without lighting
-        colour = colour.lerp(new THREE.Color("white"), 0.7);
+    // Puff of particles on cleaning decal
+    clean(loc: THREE.Vector3, colour: THREE.Color, normal: THREE.Vector3, n: number = 200) {
         // Create points
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < n; i++) {
             // Velocity is random away from wall
             const vel = new THREE.Vector3().randomDirection().multiplyScalar(4 * Math.random());
             if (vel.dot(normal) < 0) vel.multiplyScalar(-1.0);
+            vel.addScaledVector(normal, Math.random() * 1.0);
             const pos = loc.clone();
             // Add particle
             this.particles.push({
@@ -123,6 +122,7 @@ export class ParticleSystem extends Updatable {
         return d1 - d2;
     }
 
+    // Full update of all attributes
     updateGeometry() {
         this.particles.sort(this.pointComp);
 
@@ -152,8 +152,8 @@ export class ParticleSystem extends Updatable {
         this.geometry.computeBoundingSphere();
     }
 
+    // Only position needs updating per frame
     updatePositions() {
-        // Update only positions - all that is needed per frame
         const positions = [];
         for (let p of this.particles) {
             positions.push(p.position.x, p.position.y, p.position.z);

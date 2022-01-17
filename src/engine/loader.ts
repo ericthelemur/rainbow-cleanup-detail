@@ -85,6 +85,7 @@ class Models extends ResourceLoader<THREE.Mesh | GLTF> {
         });
     }
 
+    // Custom getter to allow access to base GLTF (and animations)
     getGLTF(name: string) {
         return this.get(name)!.data! as GLTF;
     }
@@ -112,7 +113,7 @@ class Audio extends ResourceLoader<THREE.Audio> {
 
     storeResult(name: string, url: string): (result: any) => any {
         const f = super.storeResult(name, url);
-        return (result: any) => {
+        return (result: any) => {   // Creates audio clip from loaded file
             const audio = new THREE.Audio(engine.audio);
             audio.setBuffer(result);
             return f(audio);
